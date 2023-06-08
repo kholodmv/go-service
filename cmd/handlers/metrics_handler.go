@@ -1,22 +1,29 @@
-package main
+package handlers
 
 import (
+	"github.com/kholodmv/go-service.git/cmd/storage"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-type MetricType string
-
 const (
-	Gauge   MetricType = "gauge"
-	Counter MetricType = "counter"
+	Gauge   string = "gauge"
+	Counter string = "counter"
 )
 
-func (store *MemStorage) PostHandler(res http.ResponseWriter, req *http.Request) {
-	checkHTTPMethod(res, req)
+type MetricHandler struct {
+	metricRepository storage.MetricRepository
+}
 
-	res.Header().Set("Content-Type", "application/json")
+func NewMetricHandler(metricRepository storage.MetricRepository) *MetricHandler {
+	return &MetricHandler{
+		metricRepository: metricRepository,
+	}
+}
+
+func (uh *MetricHandler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
+	checkHTTPMethod(res, req)
 
 	parts := strings.Split(req.URL.Path, "/")
 	if len(parts) != 5 {
@@ -24,17 +31,16 @@ func (store *MemStorage) PostHandler(res http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	//store.mutex.Lock()
-	//defer store.mutex.Unlock()
-
-	checkType(res, parts, store)
+	checkType(res, parts, uh)
 
 	metricName := parts[3]
 	checkName(res, metricName)
+
+	res.WriteHeader(http.StatusOK)
 }
 
-func checkType(res http.ResponseWriter, parts []string, store *MemStorage) {
-	metricType := MetricType(parts[2])
+func checkType(res http.ResponseWriter, parts []string, uh *MetricHandler) {
+	metricType := parts[2]
 
 	switch metricType {
 	case Gauge:
@@ -43,24 +49,19 @@ func checkType(res http.ResponseWriter, parts []string, store *MemStorage) {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 			return
 		}
-		store.metrics["gauge"] = value
+		uh.metricRepository.TypeGauge(value)
 
 	case Counter:
 		value, err := strconv.ParseInt(parts[4], 10, 64)
 		if err != nil {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 		}
-		if existingValue, ok := store.metrics["counter"].(int64); ok {
-			store.metrics["counter"] = existingValue + value
-		} else {
-			store.metrics["counter"] = value
-		}
+		uh.metricRepository.TypeCounter(value)
 
 	default:
-		http.Error(res, string("Incorrect type of metric "+metricType), http.StatusBadRequest)
+		http.Error(res, "Incorrect type of metric "+metricType, http.StatusBadRequest)
 		return
 	}
-	res.WriteHeader(http.StatusOK)
 }
 
 func checkName(res http.ResponseWriter, metricName string) {
@@ -75,4 +76,5 @@ func checkHTTPMethod(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Only POST methods", http.StatusMethodNotAllowed)
 		return
 	}
+	res.Header().Set("Content-Type", "application/json")
 }
