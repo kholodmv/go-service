@@ -22,7 +22,7 @@ func NewMetricHandler(metricRepository storage.MetricRepository) *MetricHandler 
 	}
 }
 
-func (uh *MetricHandler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
+func (mh *MetricHandler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
 	checkHTTPMethod(res, req)
 
 	parts := strings.Split(req.URL.Path, "/")
@@ -31,7 +31,7 @@ func (uh *MetricHandler) UpdateMetric(res http.ResponseWriter, req *http.Request
 		return
 	}
 
-	checkType(res, parts, uh)
+	checkType(res, parts, mh)
 
 	metricName := parts[3]
 	checkName(res, metricName)
@@ -39,7 +39,7 @@ func (uh *MetricHandler) UpdateMetric(res http.ResponseWriter, req *http.Request
 	res.WriteHeader(http.StatusOK)
 }
 
-func checkType(res http.ResponseWriter, parts []string, uh *MetricHandler) {
+func checkType(res http.ResponseWriter, parts []string, mh *MetricHandler) {
 	metricType := parts[2]
 
 	switch metricType {
@@ -49,14 +49,14 @@ func checkType(res http.ResponseWriter, parts []string, uh *MetricHandler) {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 			return
 		}
-		uh.metricRepository.TypeGauge(value)
+		mh.metricRepository.TypeGauge(value)
 
 	case Counter:
 		value, err := strconv.ParseInt(parts[4], 10, 64)
 		if err != nil {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 		}
-		uh.metricRepository.TypeCounter(value)
+		mh.metricRepository.TypeCounter(value)
 
 	default:
 		http.Error(res, "Incorrect type of metric "+metricType, http.StatusBadRequest)
