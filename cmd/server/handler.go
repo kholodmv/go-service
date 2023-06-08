@@ -14,13 +14,13 @@ const (
 )
 
 func (store *MemStorage) PostHandler(res http.ResponseWriter, req *http.Request) {
-	checkHttpMethod(res, req)
+	checkHTTPMethod(res, req)
 
 	res.Header().Set("Content-Type", "application/json")
 
 	parts := strings.Split(req.URL.Path, "/")
 	if len(parts) != 5 {
-		http.Error(res, "Invalid request", http.StatusBadRequest)
+		http.Error(res, "Invalid request", http.StatusNotFound)
 		return
 	}
 
@@ -70,7 +70,7 @@ func checkName(res http.ResponseWriter, metricName string) {
 	}
 }
 
-func checkHttpMethod(res http.ResponseWriter, req *http.Request) {
+func checkHTTPMethod(res http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		http.Error(res, "Only POST methods", http.StatusMethodNotAllowed)
 		return
