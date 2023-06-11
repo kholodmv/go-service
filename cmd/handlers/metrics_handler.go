@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/kholodmv/go-service.git/cmd/storage"
+	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,12 +13,12 @@ const (
 )
 
 type MetricHandler struct {
-	metricRepository storage.MetricRepository
+	metricStorage storage.MetricRepository
 }
 
-func NewMetricHandler(metricRepository storage.MetricRepository) *MetricHandler {
+func NewMetricHandler(metricStorage storage.MetricRepository) *MetricHandler {
 	return &MetricHandler{
-		metricRepository: metricRepository,
+		metricStorage: metricStorage,
 	}
 }
 
@@ -49,14 +49,14 @@ func checkType(res http.ResponseWriter, parts []string, mh *MetricHandler) {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 			return
 		}
-		mh.metricRepository.TypeGauge(value)
+		mh.metricStorage.TypeGauge(value)
 
 	case Counter:
 		value, err := strconv.ParseInt(parts[4], 10, 64)
 		if err != nil {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 		}
-		mh.metricRepository.TypeCounter(value)
+		mh.metricStorage.TypeCounter(value)
 
 	default:
 		http.Error(res, "Incorrect type of metric "+metricType, http.StatusBadRequest)
@@ -76,5 +76,5 @@ func checkHTTPMethod(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Only POST methods", http.StatusMethodNotAllowed)
 		return
 	}
-	res.Header().Set("Content-Type", "application/json")
+	res.Header().Set("Content-Type", "text/plain")
 }

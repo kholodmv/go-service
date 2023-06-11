@@ -1,3 +1,3 @@
-module github.com/kholodmv/go-service.git
+module github.com/kholodmv/go-service
 
 go 1.20

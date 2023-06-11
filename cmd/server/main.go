@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/kholodmv/go-service.git/cmd/handlers"
-	"github.com/kholodmv/go-service.git/cmd/storage"
+	"github.com/kholodmv/go-service/cmd/handlers"
+	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"
 )
 
 func main() {
-	metricRepository := storage.NewMetricRepository()
-	metricHandler := handlers.NewMetricHandler(metricRepository)
+	memoryStorage := storage.NewMetricMemoryStorage()
+	handler := handlers.NewMetricHandler(memoryStorage)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/update/", metricHandler.UpdateMetric)
+	mux.HandleFunc("/update/", handler.UpdateMetric)
 
 	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
