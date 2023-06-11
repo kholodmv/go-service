@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
-	"time"
 )
 
 type gauge float64
@@ -55,9 +54,8 @@ func collectMetrics() Metrics {
 	metrics.runtimeMetrics["TotalAlloc"] = gauge(memStats.TotalAlloc)
 
 	metrics.pollCount += 1
-
-	rand.Seed(time.Now().UnixNano())
-	metrics.randomValue = gauge(rand.Int63())
+	r := rand.New(rand.NewSource(99))
+	metrics.randomValue = gauge(r.Int63())
 
 	return metrics
 }
