@@ -1,4 +1,4 @@
-package getValue
+package getvalue
 
 import (
 	"fmt"

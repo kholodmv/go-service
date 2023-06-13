@@ -1,4 +1,4 @@
-package getAll
+package getall
 
 import (
 	"fmt"
