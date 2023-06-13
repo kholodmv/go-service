@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-resty/resty/v2"
 	"log"
 	"math/rand"
 	"net/http"
@@ -60,23 +61,43 @@ func collectMetrics() Metrics {
 	return metrics
 }
 
-func sendMetrics(client *http.Client, metrics *Metrics) error {
+func sendMetrics(client *resty.Client, metrics *Metrics) error {
 	domain := "http://localhost:8080"
 
 	for k, v := range metrics.runtimeMetrics {
 		url := domain + "/update/gauge/" + k + "/" + strconv.FormatFloat(float64(v), 'f', 1, 64)
-		resp, err := client.Post(url, "text/plain", nil)
+
+		resp, err := client.R().
+			SetHeader("Content-Type", "text/plain").
+			Post(url)
+
 		if err != nil {
 			return fmt.Errorf("HTTP POST request failed: %v", err)
 		}
-		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode() != http.StatusOK {
 			return fmt.Errorf("unexpected HTTP response status: %s", resp.Status)
 		}
 
+		log.Println(url)
 		log.Println(resp)
 		url = ""
 	}
+
+	url := domain + "/update/counter/someMetric/" + strconv.FormatInt(int64(metrics.pollCount), 10)
+	resp, err := client.R().
+		SetHeader("Content-Type", "text/plain").
+		Post(url)
+	if err != nil {
+		return fmt.Errorf("HTTP POST request failed: %v", err)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return fmt.Errorf("unexpected HTTP response status: %s", resp.Status)
+	}
+
+	log.Println(url)
+	log.Println(resp)
+
 	return nil
 }

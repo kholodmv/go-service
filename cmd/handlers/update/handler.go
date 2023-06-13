@@ -1,4 +1,4 @@
-package handlers
+package update
 
 import (
 	"github.com/kholodmv/go-service/cmd/storage"
@@ -30,17 +30,17 @@ func (mh *MetricHandler) UpdateMetric(res http.ResponseWriter, req *http.Request
 		http.Error(res, "Invalid request", http.StatusNotFound)
 		return
 	}
-
-	checkType(res, parts, mh)
-
 	metricName := parts[3]
 	checkName(res, metricName)
+
+	checkType(res, parts, mh)
 
 	res.WriteHeader(http.StatusOK)
 }
 
 func checkType(res http.ResponseWriter, parts []string, mh *MetricHandler) {
 	metricType := parts[2]
+	metricName := parts[3]
 
 	switch metricType {
 	case Gauge:
@@ -49,14 +49,15 @@ func checkType(res http.ResponseWriter, parts []string, mh *MetricHandler) {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 			return
 		}
-		mh.metricStorage.TypeGauge(value)
+
+		mh.metricStorage.TypeGauge(value, metricName)
 
 	case Counter:
 		value, err := strconv.ParseInt(parts[4], 10, 64)
 		if err != nil {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 		}
-		mh.metricStorage.TypeCounter(value)
+		mh.metricStorage.TypeCounter(value, metricName)
 
 	default:
 		http.Error(res, "Incorrect type of metric "+metricType, http.StatusBadRequest)

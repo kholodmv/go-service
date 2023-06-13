@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/go-resty/resty/v2"
 	"log"
-	"net/http"
 	"time"
 )
 
@@ -18,7 +18,7 @@ func main() {
 
 	metrics := Metrics{}
 
-	client := http.Client{}
+	client := resty.New()
 
 	for {
 		select {
@@ -26,7 +26,7 @@ func main() {
 			metrics = collectMetrics()
 
 		case <-reportTicker.C:
-			err := sendMetrics(&client, &metrics)
+			err := sendMetrics(client, &metrics)
 			if err != nil {
 				log.Printf("Failed to send metrics: %v", err)
 			}
