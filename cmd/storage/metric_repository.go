@@ -10,8 +10,8 @@ type Metric struct {
 }
 
 type MetricRepository interface {
-	TypeCounter(value int64, name string)
-	TypeGauge(value float64, name string)
+	AddCounter(value int64, name string)
+	AddGauge(value float64, name string)
 	GetValueGaugeMetric(name string) (float64, bool)
 	GetValueCounterMetric(name string) (int64, bool)
 	GetAllMetrics() []Metric
@@ -31,22 +31,12 @@ func NewMemoryStorage() *memoryStorage {
 }
 
 func (m *memoryStorage) GetValueGaugeMetric(name string) (float64, bool) {
-	m.Lock()
-
 	value, ok := m.gaugeMetrics[name]
-
-	m.Unlock()
-
 	return value, ok
 }
 
 func (m *memoryStorage) GetValueCounterMetric(name string) (int64, bool) {
-	m.Lock()
-
 	value, ok := m.counterMetrics[name]
-
-	m.Unlock()
-
 	return value, ok
 }
 
@@ -61,7 +51,7 @@ func (m *memoryStorage) GetAllMetrics() []Metric {
 	return metrics
 }
 
-func (m *memoryStorage) TypeCounter(value int64, name string) {
+func (m *memoryStorage) AddCounter(value int64, name string) {
 	m.Lock()
 
 	var newValue int64
@@ -75,7 +65,7 @@ func (m *memoryStorage) TypeCounter(value int64, name string) {
 
 	m.Unlock()
 }
-func (m *memoryStorage) TypeGauge(value float64, name string) {
+func (m *memoryStorage) AddGauge(value float64, name string) {
 	m.Lock()
 
 	m.gaugeMetrics[name] = value

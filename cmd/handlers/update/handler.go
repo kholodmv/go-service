@@ -50,14 +50,14 @@ func checkType(res http.ResponseWriter, parts []string, mh *MetricHandler) {
 			return
 		}
 
-		mh.metricStorage.TypeGauge(value, metricName)
+		mh.metricStorage.AddGauge(value, metricName)
 
 	case Counter:
 		value, err := strconv.ParseInt(parts[4], 10, 64)
 		if err != nil {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 		}
-		mh.metricStorage.TypeCounter(value, metricName)
+		mh.metricStorage.AddCounter(value, metricName)
 
 	default:
 		http.Error(res, "Incorrect type of metric "+metricType, http.StatusBadRequest)

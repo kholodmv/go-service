@@ -76,7 +76,7 @@ func sendMetrics(client *resty.Client, metrics *Metrics) error {
 		}
 
 		if resp.StatusCode() != http.StatusOK {
-			return fmt.Errorf("unexpected HTTP response status: %s", resp.Status)
+			return fmt.Errorf("unexpected HTTP response status")
 		}
 
 		log.Println(url)
@@ -93,7 +93,7 @@ func sendMetrics(client *resty.Client, metrics *Metrics) error {
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("unexpected HTTP response status: %s", resp.Status)
+		return fmt.Errorf("unexpected HTTP response status")
 	}
 
 	log.Println(url)
