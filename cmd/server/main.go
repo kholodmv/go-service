@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/go-chi/chi/v5"
-	get_all "github.com/kholodmv/go-service/cmd/handlers/get-all"
-	get_value "github.com/kholodmv/go-service/cmd/handlers/get-value"
+	get_all "github.com/kholodmv/go-service/cmd/handlers/getAll"
+	get_value "github.com/kholodmv/go-service/cmd/handlers/getValue"
 	"github.com/kholodmv/go-service/cmd/handlers/update"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"

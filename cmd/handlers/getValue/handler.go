@@ -1,4 +1,4 @@
-package get_value
+package getValue
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ func (mh *MetricHandler) GetValueMetric(res http.ResponseWriter, req *http.Reque
 	if typeMetric == "counter" {
 		value, ok = mh.metricStorage.GetValueCounterMetric(name)
 	}
-	
+
 	fmt.Println(value)
 	if !ok {
 		http.NotFound(res, req)
