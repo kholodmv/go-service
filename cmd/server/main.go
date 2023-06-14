@@ -11,6 +11,14 @@ import (
 	"net/http"
 )
 
+var serverFlagParams struct {
+	flagRunAddr string
+}
+
+func init() {
+	flag.StringVar(&serverFlagParams.flagRunAddr, "a", "localhost:8080", "address and port to run server")
+}
+
 func MetricRouter() chi.Router {
 	r := chi.NewRouter()
 
@@ -27,10 +35,6 @@ func MetricRouter() chi.Router {
 	return r
 }
 
-func init() {
-	flag.StringVar(&flagRunAddr, "a", "localhost:8080", "address and port to run server")
-}
-
 func main() {
 	flag.Parse()
 
@@ -40,6 +44,6 @@ func main() {
 }
 
 func run() error {
-	fmt.Println("Running server on", flagRunAddr)
-	return http.ListenAndServe(flagRunAddr, MetricRouter())
+	fmt.Println("Running server on", serverFlagParams.flagRunAddr)
+	return http.ListenAndServe(serverFlagParams.flagRunAddr, MetricRouter())
 }
