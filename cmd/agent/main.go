@@ -7,13 +7,12 @@ import (
 )
 
 func main() {
-	pollInterval := 2 * time.Second
-	reportInterval := 10 * time.Second
+	parseFlags()
 
-	pollTicker := time.NewTicker(pollInterval)
+	pollTicker := time.NewTicker(flagPollInterval)
 	defer pollTicker.Stop()
 
-	reportTicker := time.NewTicker(reportInterval)
+	reportTicker := time.NewTicker(flagReportInterval)
 	defer reportTicker.Stop()
 
 	metrics := Metrics{}
@@ -26,7 +25,7 @@ func main() {
 			metrics = collectMetrics()
 
 		case <-reportTicker.C:
-			err := sendMetrics(client, &metrics)
+			err := sendMetrics(client, &metrics, flagAddress)
 			if err != nil {
 				log.Printf("Failed to send metrics: %v", err)
 			}

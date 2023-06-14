@@ -61,11 +61,9 @@ func collectMetrics() Metrics {
 	return metrics
 }
 
-func sendMetrics(client *resty.Client, metrics *Metrics) error {
-	domain := "http://localhost:8080"
-
+func sendMetrics(client *resty.Client, metrics *Metrics, agentUrl string) error {
 	for k, v := range metrics.runtimeMetrics {
-		url := domain + "/update/gauge/" + k + "/" + strconv.FormatFloat(float64(v), 'f', 1, 64)
+		url := "http://" + agentUrl + "/update/gauge/" + k + "/" + strconv.FormatFloat(float64(v), 'f', 1, 64)
 
 		resp, err := client.R().
 			SetHeader("Content-Type", "text/plain").
@@ -84,7 +82,7 @@ func sendMetrics(client *resty.Client, metrics *Metrics) error {
 		url = ""
 	}
 
-	url := domain + "/update/counter/someMetric/" + strconv.FormatInt(int64(metrics.pollCount), 10)
+	url := "http://" + agentUrl + "/update/counter/someMetric/" + strconv.FormatInt(int64(metrics.pollCount), 10)
 	resp, err := client.R().
 		SetHeader("Content-Type", "text/plain").
 		Post(url)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	get_all "github.com/kholodmv/go-service/cmd/handlers/getall"
 	get_value "github.com/kholodmv/go-service/cmd/handlers/getvalue"
@@ -26,5 +27,14 @@ func MetricRouter() chi.Router {
 }
 
 func main() {
-	http.ListenAndServe(":8080", MetricRouter())
+	parseFlags()
+
+	if err := run(); err != nil {
+		panic(err)
+	}
+}
+
+func run() error {
+	fmt.Println("Running server on", flagRunAddr)
+	return http.ListenAndServe(flagRunAddr, MetricRouter())
 }
