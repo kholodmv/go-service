@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	get_all "github.com/kholodmv/go-service/cmd/handlers/getall"
@@ -10,14 +9,6 @@ import (
 	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"
 )
-
-var serverFlagParams struct {
-	flagRunAddr string
-}
-
-func init() {
-	flag.StringVar(&serverFlagParams.flagRunAddr, "a", "localhost:8080", "address and port to run server")
-}
 
 func MetricRouter() chi.Router {
 	r := chi.NewRouter()
@@ -36,7 +27,7 @@ func MetricRouter() chi.Router {
 }
 
 func main() {
-	flag.Parse()
+	parseFlags()
 
 	if err := run(); err != nil {
 		panic(err)
@@ -44,6 +35,6 @@ func main() {
 }
 
 func run() error {
-	fmt.Println("Running server on", serverFlagParams.flagRunAddr)
-	return http.ListenAndServe(serverFlagParams.flagRunAddr, MetricRouter())
+	fmt.Println("Running server on", flagRunAddr)
+	return http.ListenAndServe(flagRunAddr, MetricRouter())
 }
