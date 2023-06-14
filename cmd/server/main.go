@@ -36,5 +36,6 @@ func main() {
 
 func run() error {
 	fmt.Println("Running server on", flagRunAddr)
-	return http.ListenAndServe(flagRunAddr, MetricRouter())
+	port := ":" + flagRunAddr
+	return http.ListenAndServe(port, MetricRouter())
 }
