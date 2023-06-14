@@ -9,10 +9,12 @@ import (
 func main() {
 	parseFlags()
 
-	pollTicker := time.NewTicker(flagPollInterval)
+	pollInterval := time.Duration(flagPollInterval) * time.Second
+	pollTicker := time.NewTicker(pollInterval)
 	defer pollTicker.Stop()
 
-	reportTicker := time.NewTicker(flagReportInterval)
+	reportInterval := time.Duration(flagReportInterval) * time.Second
+	reportTicker := time.NewTicker(reportInterval)
 	defer reportTicker.Stop()
 
 	metrics := Metrics{}
