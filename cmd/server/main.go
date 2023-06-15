@@ -8,6 +8,7 @@ import (
 	"github.com/kholodmv/go-service/cmd/handlers/update"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"
+	"os"
 )
 
 func MetricRouter() chi.Router {
@@ -28,6 +29,10 @@ func MetricRouter() chi.Router {
 
 func main() {
 	parseFlags()
+
+	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
+		flagRunAddr = envRunAddr
+	}
 
 	if err := run(); err != nil {
 		panic(err)
