@@ -27,7 +27,7 @@ func useStartParams() AgentParams {
 		f.flagReportInterval, _ = strconv.Atoi(envPollInterval)
 	}
 
-	flag.StringVar(&f.flagAddress, "a", "localhost:8081", "HTTP server endpoint address")
+	flag.StringVar(&f.flagAddress, "a", "localhost:8080", "HTTP server endpoint address")
 	flag.IntVar(&f.flagReportInterval, "r", 10, "input report interval")
 	flag.IntVar(&f.flagPollInterval, "p", 2, "input poll interval")
 

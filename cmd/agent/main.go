@@ -21,14 +21,14 @@ func main() {
 
 	client := resty.New()
 
-	agentUrl := "http://" + flags.flagAddress + "/update"
+	agentURL := "http://" + flags.flagAddress + "/update"
 	for {
 		select {
 		case <-pollTicker.C:
 			metrics = collectMetrics()
 
 		case <-reportTicker.C:
-			err := sendMetrics(client, &metrics, agentUrl)
+			err := sendMetrics(client, &metrics, agentURL)
 			if err != nil {
 				log.Printf("Failed to send metrics: %v", err)
 			}
