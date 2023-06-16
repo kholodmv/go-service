@@ -15,6 +15,12 @@ type AgentParams struct {
 func useStartParams() AgentParams {
 	f := AgentParams{}
 
+	flag.StringVar(&f.flagAddress, "a", "localhost:8080", "HTTP server endpoint address")
+	flag.IntVar(&f.flagReportInterval, "r", 10, "input report interval")
+	flag.IntVar(&f.flagPollInterval, "p", 2, "input poll interval")
+
+	flag.Parse()
+
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		f.flagAddress = envRunAddr
 	}
@@ -26,12 +32,6 @@ func useStartParams() AgentParams {
 	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
 		f.flagReportInterval, _ = strconv.Atoi(envPollInterval)
 	}
-
-	flag.StringVar(&f.flagAddress, "a", "localhost:8080", "HTTP server endpoint address")
-	flag.IntVar(&f.flagReportInterval, "r", 10, "input report interval")
-	flag.IntVar(&f.flagPollInterval, "p", 2, "input poll interval")
-
-	flag.Parse()
 
 	return f
 }
