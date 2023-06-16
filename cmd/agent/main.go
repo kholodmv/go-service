@@ -3,31 +3,17 @@ package main
 import (
 	"github.com/go-resty/resty/v2"
 	"log"
-	"os"
-	"strconv"
 	"time"
 )
 
 func main() {
-	parseFlags()
+	flags := useStartParams()
 
-	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		flagAddress = envRunAddr
-	}
-
-	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
-		flagReportInterval, _ = strconv.Atoi(envReportInterval)
-	}
-
-	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
-		flagReportInterval, _ = strconv.Atoi(envPollInterval)
-	}
-
-	pollInterval := time.Duration(flagPollInterval) * time.Second
+	pollInterval := time.Duration(flags.flagPollInterval) * time.Second
 	pollTicker := time.NewTicker(pollInterval)
 	defer pollTicker.Stop()
 
-	reportInterval := time.Duration(flagReportInterval) * time.Second
+	reportInterval := time.Duration(flags.flagReportInterval) * time.Second
 	reportTicker := time.NewTicker(reportInterval)
 	defer reportTicker.Stop()
 
@@ -35,13 +21,14 @@ func main() {
 
 	client := resty.New()
 
+	agentUrl := "http://" + flags.flagAddress + "/update"
 	for {
 		select {
 		case <-pollTicker.C:
 			metrics = collectMetrics()
 
 		case <-reportTicker.C:
-			err := sendMetrics(client, &metrics, flagAddress)
+			err := sendMetrics(client, &metrics, agentUrl)
 			if err != nil {
 				log.Printf("Failed to send metrics: %v", err)
 			}

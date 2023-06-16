@@ -1,67 +1,85 @@
 package update
 
 import (
+	"github.com/kholodmv/go-service/cmd/common"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-const (
-	Gauge   string = "gauge"
-	Counter string = "counter"
-)
-
-type MetricHandler struct {
-	metricStorage storage.MetricRepository
+type Handler struct {
+	repository storage.MetricRepository
 }
 
-func NewMetricHandler(metricStorage storage.MetricRepository) *MetricHandler {
-	return &MetricHandler{
-		metricStorage: metricStorage,
+func NewHandler(repository storage.MetricRepository) *Handler {
+	return &Handler{
+		repository: repository,
 	}
 }
 
-func (mh *MetricHandler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
-	checkHTTPMethod(res, req)
+func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
+	common.CheckPostHTTPMethod(res, req)
+	res.Header().Set("Content-Type", "text/plain")
 
-	parts := strings.Split(req.URL.Path, "/")
-	if len(parts) != 5 {
-		http.Error(res, "Invalid request", http.StatusNotFound)
-		return
-	}
-	metricName := parts[3]
+	params := parsParams(res, req)
+
+	metricType := params[2]
+	checkType(res, metricType)
+
+	metricName := params[3]
 	checkName(res, metricName)
 
-	checkType(res, parts, mh)
+	metricValue := params[4]
+	checkMetricsValue(res, metricValue, metricType)
+
+	saveMetrics(metricType, metricName, metricValue, mh)
 
 	res.WriteHeader(http.StatusOK)
 }
 
-func checkType(res http.ResponseWriter, parts []string, mh *MetricHandler) {
-	metricType := parts[2]
-	metricName := parts[3]
+func parsParams(res http.ResponseWriter, req *http.Request) []string {
+	parts := strings.Split(req.URL.Path, "/")
+	if len(parts) != 5 {
+		http.Error(res, "Invalid request", http.StatusNotFound)
+		return nil
+	}
+	return parts
+}
 
-	switch metricType {
-	case Gauge:
-		value, err := strconv.ParseFloat(parts[4], 64)
+func checkType(res http.ResponseWriter, metricType string) {
+	if metricType != common.Gauge && metricType != common.Counter {
+		http.Error(res, "Incorrect type of metric "+metricType, http.StatusBadRequest)
+		return
+	}
+}
+
+func checkMetricsValue(res http.ResponseWriter, value string, typeMetric string) {
+	if typeMetric == common.Gauge {
+		_, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 			return
 		}
+	}
 
-		mh.metricStorage.AddGauge(value, metricName)
-
-	case Counter:
-		value, err := strconv.ParseInt(parts[4], 10, 64)
+	if typeMetric == common.Counter {
+		_, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			http.Error(res, "Invalid metric value", http.StatusBadRequest)
 		}
-		mh.metricStorage.AddCounter(value, metricName)
+	}
+}
 
-	default:
-		http.Error(res, "Incorrect type of metric "+metricType, http.StatusBadRequest)
-		return
+func saveMetrics(metricType string, name string, value string, mh *Handler) {
+	switch metricType {
+	case common.Gauge:
+		v, _ := strconv.ParseFloat(value, 64)
+		mh.repository.AddGauge(v, name)
+
+	case common.Counter:
+		v, _ := strconv.ParseInt(value, 10, 64)
+		mh.repository.AddCounter(v, name)
 	}
 }
 
@@ -70,12 +88,4 @@ func checkName(res http.ResponseWriter, metricName string) {
 		http.Error(res, "Invalid metric name", http.StatusNotFound)
 		return
 	}
-}
-
-func checkHTTPMethod(res http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPost {
-		http.Error(res, "Only POST methods", http.StatusMethodNotAllowed)
-		return
-	}
-	res.Header().Set("Content-Type", "text/plain")
 }

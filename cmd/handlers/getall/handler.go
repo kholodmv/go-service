@@ -2,24 +2,26 @@ package getall
 
 import (
 	"fmt"
+	"github.com/kholodmv/go-service/cmd/common"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"
 )
 
-type MetricHandler struct {
-	metricStorage storage.MetricRepository
+type Handler struct {
+	repository storage.MetricRepository
 }
 
-func NewMetricHandler(metricStorage storage.MetricRepository) *MetricHandler {
-	return &MetricHandler{
-		metricStorage: metricStorage,
+func NewHandler(repository storage.MetricRepository) *Handler {
+	return &Handler{
+		repository: repository,
 	}
 }
 
-func (m *MetricHandler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
-	checkHTTPMethod(res, req)
+func (m *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
+	common.CheckGetHTTPMethod(res, req)
+	res.Header().Set("Content-Type", "text/plain")
 
-	metrics := m.metricStorage.GetAllMetrics()
+	metrics := m.repository.GetAllMetrics()
 
 	var str string
 	for _, metric := range metrics {
@@ -27,12 +29,4 @@ func (m *MetricHandler) GetAllMetric(res http.ResponseWriter, req *http.Request)
 	}
 
 	fmt.Fprint(res, str)
-}
-
-func checkHTTPMethod(res http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodGet {
-		http.Error(res, "Only GET methods", http.StatusMethodNotAllowed)
-		return
-	}
-	res.Header().Set("Content-Type", "text/plain")
 }

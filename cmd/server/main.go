@@ -8,38 +8,33 @@ import (
 	"github.com/kholodmv/go-service/cmd/handlers/update"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"
-	"os"
 )
 
 func MetricRouter() chi.Router {
-	r := chi.NewRouter()
+	router := chi.NewRouter()
 
 	memoryStorage := storage.NewMemoryStorage()
 
-	updHandler := update.NewMetricHandler(memoryStorage)
-	getValueHandler := get_value.NewMetricHandler(memoryStorage)
-	getAllHandler := get_all.NewMetricHandler(memoryStorage)
+	updHandler := update.NewHandler(memoryStorage)
+	getValueHandler := get_value.NewHandler(memoryStorage)
+	getAllHandler := get_all.NewHandler(memoryStorage)
 
-	r.Post("/update/{type}/{name}/{value}", updHandler.UpdateMetric)
-	r.Get("/value/{type}/{name}", getValueHandler.GetValueMetric)
-	r.Get("/", getAllHandler.GetAllMetric)
+	router.Post("/update/{type}/{name}/{value}", updHandler.UpdateMetric)
+	router.Get("/value/{type}/{name}", getValueHandler.GetValueMetric)
+	router.Get("/", getAllHandler.GetAllMetric)
 
-	return r
+	return router
 }
 
 func main() {
-	parseFlags()
+	flags := useStartParams()
 
-	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		flagRunAddr = envRunAddr
-	}
-
-	if err := run(); err != nil {
+	if err := run(flags); err != nil {
 		panic(err)
 	}
 }
 
-func run() error {
-	fmt.Println("Running server on", flagRunAddr)
-	return http.ListenAndServe(flagRunAddr, MetricRouter())
+func run(flags string) error {
+	fmt.Println("Running server on", flags)
+	return http.ListenAndServe(flags, MetricRouter())
 }
