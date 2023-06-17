@@ -1,8 +1,7 @@
 package main
 
 import (
-	get_all "github.com/kholodmv/go-service/cmd/handlers/getall"
-	"github.com/kholodmv/go-service/cmd/handlers/getvalue"
+	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -172,7 +171,7 @@ func TestGetAllMetric(t *testing.T) {
 	storage := storage.NewMemoryStorage()
 	storage.AddGauge(56.4, "test_gauge_metric")
 	storage.AddCounter(5, "test_counter_metric")
-	getAllHandler := get_all.NewHandler(storage)
+	getAllHandler := handlers.NewGetAllHandler(storage)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -220,7 +219,7 @@ func TestGetValueMetric(t *testing.T) {
 	storage := storage.NewMemoryStorage()
 	storage.AddGauge(56.4, "nameGaugeMetric")
 	storage.AddCounter(5, "nameCounterMetric")
-	getValueHandler := getvalue.NewHandler(storage)
+	getValueHandler := handlers.NewGetValueHandler(storage)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

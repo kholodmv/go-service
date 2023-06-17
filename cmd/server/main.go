@@ -3,10 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	get_all "github.com/kholodmv/go-service/cmd/handlers/getall"
-	get_value "github.com/kholodmv/go-service/cmd/handlers/getvalue"
-	"github.com/kholodmv/go-service/cmd/handlers/update"
+	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
+	"github.com/kholodmv/go-service/internal/configs"
 	"net/http"
 )
 
@@ -15,9 +14,9 @@ func MetricRouter() chi.Router {
 
 	memoryStorage := storage.NewMemoryStorage()
 
-	updHandler := update.NewHandler(memoryStorage)
-	getValueHandler := get_value.NewHandler(memoryStorage)
-	getAllHandler := get_all.NewHandler(memoryStorage)
+	updHandler := handlers.NewUpdateHandler(memoryStorage)
+	getValueHandler := handlers.NewGetValueHandler(memoryStorage)
+	getAllHandler := handlers.NewGetAllHandler(memoryStorage)
 
 	router.Post("/update/{type}/{name}/{value}", updHandler.UpdateMetric)
 	router.Get("/value/{type}/{name}", getValueHandler.GetValueMetric)
@@ -27,7 +26,7 @@ func MetricRouter() chi.Router {
 }
 
 func main() {
-	flags := useStartParams()
+	flags := configs.UseServerStartParams()
 
 	if err := run(flags); err != nil {
 		panic(err)

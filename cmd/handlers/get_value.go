@@ -1,26 +1,25 @@
-package getvalue
+package handlers
 
 import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	"github.com/kholodmv/go-service/cmd/common"
+	"github.com/kholodmv/go-service/cmd/metrics"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"io"
 	"net/http"
 )
 
-type Handler struct {
+type GetValueHandler struct {
 	repository storage.MetricRepository
 }
 
-func NewHandler(repository storage.MetricRepository) *Handler {
-	return &Handler{
+func NewGetValueHandler(repository storage.MetricRepository) *GetValueHandler {
+	return &GetValueHandler{
 		repository: repository,
 	}
 }
 
-func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
-	common.CheckGetHTTPMethod(res, req)
+func (mh *GetValueHandler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/plain")
 
 	typeMetric := chi.URLParam(req, "type")
@@ -29,10 +28,10 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	var value interface{}
 	var ok bool
 
-	if typeMetric == common.Gauge {
+	if typeMetric == metrics.Gauge {
 		value, ok = mh.repository.GetValueGaugeMetric(name)
 	}
-	if typeMetric == common.Counter {
+	if typeMetric == metrics.Counter {
 		value, ok = mh.repository.GetValueCounterMetric(name)
 	}
 

@@ -23,7 +23,7 @@ type memoryStorage struct {
 	sync.Mutex
 }
 
-func NewMemoryStorage() *memoryStorage {
+func NewMemoryStorage() MetricRepository {
 	return &memoryStorage{
 		gaugeMetrics:   make(map[string]float64),
 		counterMetrics: make(map[string]int64),

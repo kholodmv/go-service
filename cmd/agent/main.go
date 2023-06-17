@@ -2,33 +2,35 @@ package main
 
 import (
 	"github.com/go-resty/resty/v2"
+	"github.com/kholodmv/go-service/cmd/metrics"
+	"github.com/kholodmv/go-service/internal/configs"
 	"log"
 	"time"
 )
 
 func main() {
-	flags := useStartParams()
+	flags := configs.UseAgentStartParams()
 
-	pollInterval := time.Duration(flags.flagPollInterval) * time.Second
+	pollInterval := time.Duration(flags.FlagPollInterval) * time.Second
 	pollTicker := time.NewTicker(pollInterval)
 	defer pollTicker.Stop()
 
-	reportInterval := time.Duration(flags.flagReportInterval) * time.Second
+	reportInterval := time.Duration(flags.FlagReportInterval) * time.Second
 	reportTicker := time.NewTicker(reportInterval)
 	defer reportTicker.Stop()
 
-	metrics := Metrics{}
+	m := metrics.Metrics{}
 
 	client := resty.New()
 
-	agentURL := "http://" + flags.flagAddress + "/update"
+	agentURL := "http://" + flags.FlagAddress + "/update"
 	for {
 		select {
 		case <-pollTicker.C:
-			metrics = collectMetrics()
+			m = metrics.CollectMetrics()
 
 		case <-reportTicker.C:
-			err := sendMetrics(client, &metrics, agentURL)
+			err := m.SendMetrics(client, agentURL)
 			if err != nil {
 				log.Printf("Failed to send metrics: %v", err)
 			}

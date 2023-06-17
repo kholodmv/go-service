@@ -1,4 +1,4 @@
-package main
+package metrics
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ type Metrics struct {
 	pollCount      counter
 }
 
-func collectMetrics() Metrics {
+func CollectMetrics() Metrics {
 	metrics := Metrics{
 		runtimeMetrics: make(map[string]gauge),
 	}
@@ -61,8 +61,8 @@ func collectMetrics() Metrics {
 	return metrics
 }
 
-func sendMetrics(client *resty.Client, metrics *Metrics, agentURL string) error {
-	for k, v := range metrics.runtimeMetrics {
+func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
+	for k, v := range m.runtimeMetrics {
 		url := agentURL + "/gauge/" + k + "/" + strconv.FormatFloat(float64(v), 'f', 1, 64)
 
 		resp, err := client.R().
@@ -82,7 +82,7 @@ func sendMetrics(client *resty.Client, metrics *Metrics, agentURL string) error 
 		url = ""
 	}
 
-	url := agentURL + "/counter/someMetric/" + strconv.FormatInt(int64(metrics.pollCount), 10)
+	url := agentURL + "/counter/someMetric/" + strconv.FormatInt(int64(m.pollCount), 10)
 	resp, err := client.R().
 		SetHeader("Content-Type", "text/plain").
 		Post(url)

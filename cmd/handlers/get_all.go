@@ -1,27 +1,25 @@
-package getall
+package handlers
 
 import (
 	"fmt"
-	"github.com/kholodmv/go-service/cmd/common"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"net/http"
 )
 
-type Handler struct {
+type GetAllHandler struct {
 	repository storage.MetricRepository
 }
 
-func NewHandler(repository storage.MetricRepository) *Handler {
-	return &Handler{
+func NewGetAllHandler(repository storage.MetricRepository) *GetAllHandler {
+	return &GetAllHandler{
 		repository: repository,
 	}
 }
 
-func (m *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
-	common.CheckGetHTTPMethod(res, req)
+func (mh *GetAllHandler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/plain")
 
-	metrics := m.repository.GetAllMetrics()
+	metrics := mh.repository.GetAllMetrics()
 
 	var str string
 	for _, metric := range metrics {
