@@ -15,7 +15,7 @@ type AgentParams struct {
 
 type ConfigAgent struct {
 	Client         *resty.Client
-	AgentUrl       string
+	AgentURL       string
 	ReportInterval int
 	PollInterval   int
 }
@@ -26,7 +26,7 @@ func InitConfigAgent() ConfigAgent {
 
 	return ConfigAgent{
 		Client:         resty.New(),
-		AgentUrl:       "http://" + f.FlagAddress + "/update",
+		AgentURL:       "http://" + f.FlagAddress + "/update",
 		ReportInterval: f.FlagReportInterval,
 		PollInterval:   f.FlagPollInterval,
 	}

@@ -26,7 +26,7 @@ func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
 	for {
 		if timeR >= c.ReportInterval {
 			timeR = 0
-			err := m.SendMetrics(c.Client, c.AgentUrl)
+			err := m.SendMetrics(c.Client, c.AgentURL)
 			if err != nil {
 				log.Printf("Failed to send metrics: %v", err)
 			}
