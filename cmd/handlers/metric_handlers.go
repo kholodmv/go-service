@@ -122,8 +122,8 @@ func checkAndSaveMetric(metricType string, name string, value string, mh *Handle
 }
 
 func checkName(metricName string) bool {
-	if metricName == "" {
-		return false
+	if metricName != "" {
+		return true
 	}
-	return true
+	return false
 }
