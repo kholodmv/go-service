@@ -3,11 +3,13 @@ package metrics
 import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/kholodmv/go-service/internal/configs"
 	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"strconv"
+	"time"
 )
 
 type gauge float64
@@ -19,46 +21,61 @@ type Metrics struct {
 	pollCount      counter
 }
 
-func CollectMetrics() Metrics {
-	metrics := Metrics{
-		runtimeMetrics: make(map[string]gauge),
+func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
+	timeR := 0
+	for {
+		if timeR >= c.ReportInterval {
+			timeR = 0
+			err := m.SendMetrics(c.Client, c.AgentUrl)
+			if err != nil {
+				log.Printf("Failed to send metrics: %v", err)
+			}
+		}
+		m.CollectMetrics()
+
+		time.Sleep(time.Duration(c.PollInterval) * time.Second)
+		timeR += c.PollInterval
 	}
+}
+
+func (m *Metrics) CollectMetrics() {
+	m.runtimeMetrics = make(map[string]gauge)
+
 	memStats := new(runtime.MemStats)
 	runtime.ReadMemStats(memStats)
 
-	metrics.runtimeMetrics["Alloc"] = gauge(memStats.Alloc)
-	metrics.runtimeMetrics["BuckHashSys"] = gauge(memStats.BuckHashSys)
-	metrics.runtimeMetrics["Frees"] = gauge(memStats.Frees)
-	metrics.runtimeMetrics["GCCPUFraction"] = gauge(memStats.GCCPUFraction)
-	metrics.runtimeMetrics["GCSys"] = gauge(memStats.GCSys)
-	metrics.runtimeMetrics["HeapAlloc"] = gauge(memStats.HeapAlloc)
-	metrics.runtimeMetrics["HeapIdle"] = gauge(memStats.HeapIdle)
-	metrics.runtimeMetrics["HeapInuse"] = gauge(memStats.HeapInuse)
-	metrics.runtimeMetrics["HeapObjects"] = gauge(memStats.HeapObjects)
-	metrics.runtimeMetrics["HeapReleased"] = gauge(memStats.HeapReleased)
-	metrics.runtimeMetrics["HeapSys"] = gauge(memStats.HeapSys)
-	metrics.runtimeMetrics["LastGC"] = gauge(memStats.LastGC)
-	metrics.runtimeMetrics["Lookups"] = gauge(memStats.Lookups)
-	metrics.runtimeMetrics["MCacheInuse"] = gauge(memStats.MCacheInuse)
-	metrics.runtimeMetrics["MCacheSys"] = gauge(memStats.MCacheSys)
-	metrics.runtimeMetrics["MSpanInuse"] = gauge(memStats.MSpanInuse)
-	metrics.runtimeMetrics["MSpanSys"] = gauge(memStats.MSpanSys)
-	metrics.runtimeMetrics["Mallocs"] = gauge(memStats.Mallocs)
-	metrics.runtimeMetrics["NextGC"] = gauge(memStats.NextGC)
-	metrics.runtimeMetrics["NumForcedGC"] = gauge(memStats.NumForcedGC)
-	metrics.runtimeMetrics["NumGC"] = gauge(memStats.NumGC)
-	metrics.runtimeMetrics["OtherSys"] = gauge(memStats.OtherSys)
-	metrics.runtimeMetrics["PauseTotalNs"] = gauge(memStats.PauseTotalNs)
-	metrics.runtimeMetrics["StackInuse"] = gauge(memStats.StackInuse)
-	metrics.runtimeMetrics["StackSys"] = gauge(memStats.StackSys)
-	metrics.runtimeMetrics["Sys"] = gauge(memStats.Sys)
-	metrics.runtimeMetrics["TotalAlloc"] = gauge(memStats.TotalAlloc)
+	m.runtimeMetrics["Alloc"] = gauge(memStats.Alloc)
+	m.runtimeMetrics["BuckHashSys"] = gauge(memStats.BuckHashSys)
+	m.runtimeMetrics["Frees"] = gauge(memStats.Frees)
+	m.runtimeMetrics["GCCPUFraction"] = gauge(memStats.GCCPUFraction)
+	m.runtimeMetrics["GCSys"] = gauge(memStats.GCSys)
+	m.runtimeMetrics["HeapAlloc"] = gauge(memStats.HeapAlloc)
+	m.runtimeMetrics["HeapIdle"] = gauge(memStats.HeapIdle)
+	m.runtimeMetrics["HeapInuse"] = gauge(memStats.HeapInuse)
+	m.runtimeMetrics["HeapObjects"] = gauge(memStats.HeapObjects)
+	m.runtimeMetrics["HeapReleased"] = gauge(memStats.HeapReleased)
+	m.runtimeMetrics["HeapSys"] = gauge(memStats.HeapSys)
+	m.runtimeMetrics["LastGC"] = gauge(memStats.LastGC)
+	m.runtimeMetrics["Lookups"] = gauge(memStats.Lookups)
+	m.runtimeMetrics["MCacheInuse"] = gauge(memStats.MCacheInuse)
+	m.runtimeMetrics["MCacheSys"] = gauge(memStats.MCacheSys)
+	m.runtimeMetrics["MSpanInuse"] = gauge(memStats.MSpanInuse)
+	m.runtimeMetrics["MSpanSys"] = gauge(memStats.MSpanSys)
+	m.runtimeMetrics["Mallocs"] = gauge(memStats.Mallocs)
+	m.runtimeMetrics["NextGC"] = gauge(memStats.NextGC)
+	m.runtimeMetrics["NumForcedGC"] = gauge(memStats.NumForcedGC)
+	m.runtimeMetrics["NumGC"] = gauge(memStats.NumGC)
+	m.runtimeMetrics["OtherSys"] = gauge(memStats.OtherSys)
+	m.runtimeMetrics["PauseTotalNs"] = gauge(memStats.PauseTotalNs)
+	m.runtimeMetrics["StackInuse"] = gauge(memStats.StackInuse)
+	m.runtimeMetrics["StackSys"] = gauge(memStats.StackSys)
+	m.runtimeMetrics["Sys"] = gauge(memStats.Sys)
+	m.runtimeMetrics["TotalAlloc"] = gauge(memStats.TotalAlloc)
 
-	metrics.pollCount += 1
+	m.pollCount += 1
+
 	r := rand.New(rand.NewSource(99))
-	metrics.randomValue = gauge(r.Int63())
-
-	return metrics
+	m.randomValue = gauge(r.Int63())
 }
 
 func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {

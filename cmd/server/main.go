@@ -14,13 +14,8 @@ func MetricRouter() chi.Router {
 
 	memoryStorage := storage.NewMemoryStorage()
 
-	updHandler := handlers.NewUpdateHandler(memoryStorage)
-	getValueHandler := handlers.NewGetValueHandler(memoryStorage)
-	getAllHandler := handlers.NewGetAllHandler(memoryStorage)
-
-	router.Post("/update/{type}/{name}/{value}", updHandler.UpdateMetric)
-	router.Get("/value/{type}/{name}", getValueHandler.GetValueMetric)
-	router.Get("/", getAllHandler.GetAllMetric)
+	handler := handlers.NewHandler(memoryStorage)
+	handler.RegisterRoutes(router)
 
 	return router
 }
