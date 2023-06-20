@@ -23,12 +23,10 @@ func MetricRouter() chi.Router {
 func main() {
 	flags := configs.UseServerStartParams()
 
-	if err := run(flags); err != nil {
+	fmt.Println("Running server on", flags)
+	
+	err := http.ListenAndServe(flags, MetricRouter())
+	if err != nil {
 		panic(err)
 	}
-}
-
-func run(flags string) error {
-	fmt.Println("Running server on", flags)
-	return http.ListenAndServe(flags, MetricRouter())
 }
