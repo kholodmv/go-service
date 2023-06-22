@@ -53,6 +53,7 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Fprint(res, str)
+	res.WriteHeader(http.StatusOK)
 }
 
 func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {

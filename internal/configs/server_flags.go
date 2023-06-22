@@ -5,15 +5,21 @@ import (
 	"os"
 )
 
-func UseServerStartParams() string {
-	var flagRunAddr string
+var (
+	FlagRunAddr  string
+	FlagLogLevel string
+)
 
-	flag.StringVar(&flagRunAddr, "a", "localhost:8080", "address and port to run server")
+func UseServerStartParams() {
+	flag.StringVar(&FlagRunAddr, "a", "localhost:8080", "address and port to run server")
+	flag.StringVar(&FlagLogLevel, "l", "info", "log level")
+
 	flag.Parse()
 
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		flagRunAddr = envRunAddr
+		FlagRunAddr = envRunAddr
 	}
-
-	return flagRunAddr
+	if envLogLevel := os.Getenv("LOG_LEVEL"); envLogLevel != "" {
+		FlagLogLevel = envLogLevel
+	}
 }

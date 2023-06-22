@@ -6,6 +6,7 @@ import (
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/logger"
 	"net/http"
 )
 
@@ -21,12 +22,18 @@ func MetricRouter() chi.Router {
 }
 
 func main() {
-	flags := configs.UseServerStartParams()
+	configs.UseServerStartParams()
 
-	fmt.Println("Running server on", flags)
-	
-	err := http.ListenAndServe(flags, MetricRouter())
-	if err != nil {
+	if err := run(); err != nil {
 		panic(err)
 	}
+}
+
+func run() error {
+	if err := logger.Initialize(configs.FlagLogLevel); err != nil {
+		return err
+	}
+
+	fmt.Println("Running server on", configs.FlagRunAddr)
+	return http.ListenAndServe(configs.FlagRunAddr, MetricRouter())
 }
