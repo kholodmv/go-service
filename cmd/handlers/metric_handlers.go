@@ -54,6 +54,13 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 	default:
 		http.Error(res, "Incorrect metric type", http.StatusBadRequest)
 	}
+
+	resp, err := json.Marshal(m)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	res.Write(resp)
 }
 
 func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
