@@ -21,6 +21,6 @@ func (mh *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Get("/value/{type}/{name}", logger.RequestLogger(mh.GetValueMetric))
 	router.Get("/", logger.RequestLogger(mh.GetAllMetric))
 
-	router.Post("/value/", logger.RequestLogger(mh.GetJsonMetric))
-	router.Post("/update/", logger.RequestLogger(mh.UpdateJsonMetric))
+	router.Post("/value/", logger.RequestLogger(mh.GetJSONMetric))
+	router.Post("/update/", logger.RequestLogger(mh.UpdateJSONMetric))
 }

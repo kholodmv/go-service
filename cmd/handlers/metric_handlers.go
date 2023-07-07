@@ -19,7 +19,7 @@ type PathParam struct {
 	name  string
 }
 
-func (mh *Handler) UpdateJsonMetric(res http.ResponseWriter, req *http.Request) {
+func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 
 	var m models.Metrics
@@ -56,7 +56,7 @@ func (mh *Handler) UpdateJsonMetric(res http.ResponseWriter, req *http.Request) 
 	}
 }
 
-func (mh *Handler) GetJsonMetric(res http.ResponseWriter, req *http.Request) {
+func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 
 	var m models.Metrics

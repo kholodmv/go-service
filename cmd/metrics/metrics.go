@@ -7,13 +7,15 @@ import (
 	"github.com/kholodmv/go-service/internal/configs"
 	"github.com/kholodmv/go-service/internal/models"
 	"log"
+	"math/rand"
 	"net/http"
 	"runtime"
 	"time"
 )
 
 type Metrics struct {
-	data []models.Metrics
+	data      []models.Metrics
+	pollCount int64
 }
 
 func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
@@ -96,11 +98,12 @@ func (m *Metrics) CollectMetrics() {
 	v = float64(memStats.TotalAlloc)
 	m.data = append(m.data, models.Metrics{ID: "TotalAlloc", MType: "gauge", Value: &v})
 
-	pollCount := 0
-	i := int64(pollCount)
-	m.data = append(m.data, models.Metrics{ID: "PollCount", MType: "counter", Delta: &i})
+	r := rand.New(rand.NewSource(99))
+	m.data = append(m.data, models.Metrics{ID: "RandomValue", MType: "gauge", Value: &r})
 
-	pollCount += 1
+	m.data = append(m.data, models.Metrics{ID: "PollCount", MType: "counter", Delta: &m.pollCount})
+
+	m.pollCount += 1
 }
 
 func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
