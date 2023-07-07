@@ -1,24 +1,19 @@
 package metrics
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/models"
 	"log"
-	"math/rand"
 	"net/http"
 	"runtime"
-	"strconv"
 	"time"
 )
 
-type gauge float64
-type counter int64
-
 type Metrics struct {
-	runtimeMetrics map[string]gauge
-	randomValue    gauge
-	pollCount      counter
+	data []models.Metrics
 }
 
 func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
@@ -39,53 +34,88 @@ func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
 }
 
 func (m *Metrics) CollectMetrics() {
-	m.runtimeMetrics = make(map[string]gauge)
-
 	memStats := new(runtime.MemStats)
 	runtime.ReadMemStats(memStats)
 
-	m.runtimeMetrics["Alloc"] = gauge(memStats.Alloc)
-	m.runtimeMetrics["BuckHashSys"] = gauge(memStats.BuckHashSys)
-	m.runtimeMetrics["Frees"] = gauge(memStats.Frees)
-	m.runtimeMetrics["GCCPUFraction"] = gauge(memStats.GCCPUFraction)
-	m.runtimeMetrics["GCSys"] = gauge(memStats.GCSys)
-	m.runtimeMetrics["HeapAlloc"] = gauge(memStats.HeapAlloc)
-	m.runtimeMetrics["HeapIdle"] = gauge(memStats.HeapIdle)
-	m.runtimeMetrics["HeapInuse"] = gauge(memStats.HeapInuse)
-	m.runtimeMetrics["HeapObjects"] = gauge(memStats.HeapObjects)
-	m.runtimeMetrics["HeapReleased"] = gauge(memStats.HeapReleased)
-	m.runtimeMetrics["HeapSys"] = gauge(memStats.HeapSys)
-	m.runtimeMetrics["LastGC"] = gauge(memStats.LastGC)
-	m.runtimeMetrics["Lookups"] = gauge(memStats.Lookups)
-	m.runtimeMetrics["MCacheInuse"] = gauge(memStats.MCacheInuse)
-	m.runtimeMetrics["MCacheSys"] = gauge(memStats.MCacheSys)
-	m.runtimeMetrics["MSpanInuse"] = gauge(memStats.MSpanInuse)
-	m.runtimeMetrics["MSpanSys"] = gauge(memStats.MSpanSys)
-	m.runtimeMetrics["Mallocs"] = gauge(memStats.Mallocs)
-	m.runtimeMetrics["NextGC"] = gauge(memStats.NextGC)
-	m.runtimeMetrics["NumForcedGC"] = gauge(memStats.NumForcedGC)
-	m.runtimeMetrics["NumGC"] = gauge(memStats.NumGC)
-	m.runtimeMetrics["OtherSys"] = gauge(memStats.OtherSys)
-	m.runtimeMetrics["PauseTotalNs"] = gauge(memStats.PauseTotalNs)
-	m.runtimeMetrics["StackInuse"] = gauge(memStats.StackInuse)
-	m.runtimeMetrics["StackSys"] = gauge(memStats.StackSys)
-	m.runtimeMetrics["Sys"] = gauge(memStats.Sys)
-	m.runtimeMetrics["TotalAlloc"] = gauge(memStats.TotalAlloc)
+	m.data = []models.Metrics{}
 
-	m.pollCount += 1
+	var v float64
 
-	r := rand.New(rand.NewSource(99))
-	m.randomValue = gauge(r.Int63())
+	v = float64(memStats.Alloc)
+	m.data = append(m.data, models.Metrics{ID: "Alloc", MType: "gauge", Value: &v})
+	v = float64(memStats.BuckHashSys)
+	m.data = append(m.data, models.Metrics{ID: "BuckHashSys", MType: "gauge", Value: &v})
+	v = float64(memStats.Frees)
+	m.data = append(m.data, models.Metrics{ID: "Frees", MType: "gauge", Value: &v})
+	v = memStats.GCCPUFraction
+	m.data = append(m.data, models.Metrics{ID: "GCCPUFraction", MType: "gauge", Value: &v})
+	v = float64(memStats.GCSys)
+	m.data = append(m.data, models.Metrics{ID: "GCSys", MType: "gauge", Value: &v})
+	v = float64(memStats.HeapAlloc)
+	m.data = append(m.data, models.Metrics{ID: "HeapAlloc", MType: "gauge", Value: &v})
+	v = float64(memStats.HeapIdle)
+	m.data = append(m.data, models.Metrics{ID: "HeapIdle", MType: "gauge", Value: &v})
+	v = float64(memStats.HeapInuse)
+	m.data = append(m.data, models.Metrics{ID: "HeapInuse", MType: "gauge", Value: &v})
+	v = float64(memStats.HeapObjects)
+	m.data = append(m.data, models.Metrics{ID: "HeapObjects", MType: "gauge", Value: &v})
+	v = float64(memStats.HeapReleased)
+	m.data = append(m.data, models.Metrics{ID: "HeapReleased", MType: "gauge", Value: &v})
+	v = float64(memStats.HeapSys)
+	m.data = append(m.data, models.Metrics{ID: "HeapSys", MType: "gauge", Value: &v})
+	v = float64(memStats.LastGC)
+	m.data = append(m.data, models.Metrics{ID: "LastGC", MType: "gauge", Value: &v})
+	v = float64(memStats.Lookups)
+	m.data = append(m.data, models.Metrics{ID: "Lookups", MType: "gauge", Value: &v})
+	v = float64(memStats.MCacheInuse)
+	m.data = append(m.data, models.Metrics{ID: "MCacheInuse", MType: "gauge", Value: &v})
+	v = float64(memStats.MCacheSys)
+	m.data = append(m.data, models.Metrics{ID: "MCacheSys", MType: "gauge", Value: &v})
+	v = float64(memStats.MSpanInuse)
+	m.data = append(m.data, models.Metrics{ID: "MSpanInuse", MType: "gauge", Value: &v})
+	v = float64(memStats.MSpanSys)
+	m.data = append(m.data, models.Metrics{ID: "MSpanSys", MType: "gauge", Value: &v})
+	v = float64(memStats.Mallocs)
+	m.data = append(m.data, models.Metrics{ID: "Mallocs", MType: "gauge", Value: &v})
+	v = float64(memStats.NextGC)
+	m.data = append(m.data, models.Metrics{ID: "NextGC", MType: "gauge", Value: &v})
+	v = float64(memStats.NumForcedGC)
+	m.data = append(m.data, models.Metrics{ID: "NumForcedGC", MType: "gauge", Value: &v})
+	v = float64(memStats.NumGC)
+	m.data = append(m.data, models.Metrics{ID: "NumGC", MType: "gauge", Value: &v})
+	v = float64(memStats.OtherSys)
+	m.data = append(m.data, models.Metrics{ID: "OtherSys", MType: "gauge", Value: &v})
+	v = float64(memStats.PauseTotalNs)
+	m.data = append(m.data, models.Metrics{ID: "PauseTotalNs", MType: "gauge", Value: &v})
+	v = float64(memStats.StackInuse)
+	m.data = append(m.data, models.Metrics{ID: "StackInuse", MType: "gauge", Value: &v})
+	v = float64(memStats.StackSys)
+	m.data = append(m.data, models.Metrics{ID: "StackSys", MType: "gauge", Value: &v})
+	v = float64(memStats.Sys)
+	m.data = append(m.data, models.Metrics{ID: "Sys", MType: "gauge", Value: &v})
+	v = float64(memStats.TotalAlloc)
+	m.data = append(m.data, models.Metrics{ID: "TotalAlloc", MType: "gauge", Value: &v})
+
+	pollCount := 0
+	i := int64(pollCount)
+	m.data = append(m.data, models.Metrics{ID: "PollCount", MType: "counter", Delta: &i})
+
+	pollCount += 1
 }
 
 func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
-	for k, v := range m.runtimeMetrics {
-		url := agentURL + "/gauge/" + k + "/" + strconv.FormatFloat(float64(v), 'f', 1, 64)
+	for _, metrics := range m.data {
+		url := agentURL
+
+		metricsJSON, err := json.Marshal(metrics)
+		if err != nil {
+			fmt.Printf("Error metrics JSON: %s\n", err)
+		}
 
 		resp, err := client.R().
-			SetHeader("Content-Type", "text/plain").
+			SetBody(metricsJSON).
+			SetHeader("Content-Type", "application/json").
 			Post(url)
-
 		if err != nil {
 			return fmt.Errorf("HTTP POST request failed: %v", err)
 		}
@@ -98,21 +128,6 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
 		log.Println(resp)
 		url = ""
 	}
-
-	url := agentURL + "/counter/someMetric/" + strconv.FormatInt(int64(m.pollCount), 10)
-	resp, err := client.R().
-		SetHeader("Content-Type", "text/plain").
-		Post(url)
-	if err != nil {
-		return fmt.Errorf("HTTP POST request failed: %v", err)
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("unexpected HTTP response status")
-	}
-
-	log.Println(url)
-	log.Println(resp)
 
 	return nil
 }

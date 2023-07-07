@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/configs"
 	"github.com/kholodmv/go-service/internal/logger"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -34,6 +34,6 @@ func run() error {
 		return err
 	}
 
-	fmt.Println("Running server on", configs.FlagRunAddr)
+	logger.Log.Info("Running server", zap.String("address", configs.FlagRunAddr))
 	return http.ListenAndServe(configs.FlagRunAddr, MetricRouter())
 }
