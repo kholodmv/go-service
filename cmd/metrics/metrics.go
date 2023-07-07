@@ -101,7 +101,8 @@ func (m *Metrics) CollectMetrics() {
 	r := rand.Float64()
 	m.data = append(m.data, models.Metrics{ID: "RandomValue", MType: "gauge", Value: &r})
 
-	m.data = append(m.data, models.Metrics{ID: "PollCount", MType: "counter", Delta: &m.pollCount})
+	i := m.pollCount
+	m.data = append(m.data, models.Metrics{ID: "PollCount", MType: "counter", Delta: &i})
 
 	m.pollCount += 1
 }
