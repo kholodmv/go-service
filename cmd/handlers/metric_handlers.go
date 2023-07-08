@@ -64,18 +64,11 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 }
 
 func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-
 	var m models.Metrics
-	var buf bytes.Buffer
 
-	_, err := buf.ReadFrom(req.Body)
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&m)
 	if err != nil {
-		http.Error(res, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err = json.Unmarshal(buf.Bytes(), &m); err != nil {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -105,6 +98,7 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	res.Write(resp)
 }
