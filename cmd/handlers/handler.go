@@ -3,17 +3,22 @@ package handlers
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/storage"
+	"github.com/kholodmv/go-service/internal/gzip"
 	"github.com/kholodmv/go-service/internal/logger"
 )
 
 type Handler struct {
+	router     chi.Router
 	repository storage.MetricRepository
 }
 
-func NewHandler(repository storage.MetricRepository) *Handler {
-	return &Handler{
+func NewHandler(router chi.Router, repository storage.MetricRepository) *Handler {
+	h := &Handler{
 		repository: repository,
+		router:     router,
 	}
+	h.router.Use(gzip.GzipHandle)
+	return h
 }
 
 func (mh *Handler) RegisterRoutes(router *chi.Mux) {

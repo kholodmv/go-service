@@ -15,7 +15,7 @@ func MetricRouter() chi.Router {
 
 	memoryStorage := storage.NewMemoryStorage()
 
-	handler := handlers.NewHandler(memoryStorage)
+	handler := handlers.NewHandler(router, memoryStorage)
 	handler.RegisterRoutes(router)
 
 	return router

@@ -136,7 +136,7 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 }
 
 func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/plain")
+	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	metrics := mh.repository.GetAllMetrics()
 

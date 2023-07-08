@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
@@ -16,6 +18,23 @@ import (
 type Metrics struct {
 	data      []models.Metrics
 	pollCount int64
+}
+
+func Compress(data []byte) ([]byte, error) {
+	var b bytes.Buffer
+	w, err := gzip.NewWriterLevel(&b, gzip.BestCompression)
+	if err != nil {
+		return nil, fmt.Errorf("failed init compress writer: %v", err)
+	}
+	_, err = w.Write(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
+	}
+	err = w.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed compress data: %v", err)
+	}
+	return b.Bytes(), nil
 }
 
 func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
@@ -115,9 +134,14 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
 		if err != nil {
 			fmt.Printf("Error metrics JSON: %s\n", err)
 		}
+		metricsJSON, err = Compress(metricsJSON)
+		if err != nil {
+			fmt.Printf("Error compress JSON: %s\n", err)
+		}
 
 		resp, err := client.R().
 			SetBody(metricsJSON).
+			SetHeader("Content-Encoding", "gzip").
 			SetHeader("Content-Type", "application/json").
 			Post(url)
 		if err != nil {
