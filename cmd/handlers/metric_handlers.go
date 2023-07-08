@@ -80,16 +80,16 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 
 	switch m.MType {
 	case metrics.Counter:
-		counter, ok := mh.repository.GetValueCounterMetric(m.ID)
-		if !ok {
+		counter, err := mh.repository.GetValueCounter(m.ID)
+		if err != nil {
 			http.Error(res, err.Error(), http.StatusNotFound)
 			return
 		}
 		m.Delta = &counter
 		m.MType = metrics.Counter
 	case metrics.Gauge:
-		gauge, ok := mh.repository.GetValueGaugeMetric(m.ID)
-		if !ok {
+		gauge, err := mh.repository.GetValueGauge(m.ID)
+		if err != nil {
 			http.Error(res, err.Error(), http.StatusNotFound)
 			return
 		}

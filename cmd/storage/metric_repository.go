@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 )
@@ -15,7 +16,9 @@ type MetricRepository interface {
 	AddCounter(value int64, name string)
 	AddGauge(value float64, name string)
 	GetValueGaugeMetric(name string) (float64, bool)
+	GetValueGauge(name string) (float64, error)
 	GetValueCounterMetric(name string) (int64, bool)
+	GetValueCounter(name string) (int64, error)
 	GetAllMetrics() []Metric
 	WriteAndSaveMetricsToFile(filename string) error
 }
@@ -47,6 +50,28 @@ func (m *memoryStorage) GetValueCounterMetric(name string) (int64, bool) {
 
 	value, ok := m.counterMetrics[name]
 	return value, ok
+}
+
+func (m *memoryStorage) GetValueGauge(name string) (float64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	value, ok := m.gaugeMetrics[name]
+	if !ok {
+		return value, fmt.Errorf("gauge metric with name '%s' not found", name)
+	}
+	return value, nil
+}
+
+func (m *memoryStorage) GetValueCounter(name string) (int64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	value, ok := m.counterMetrics[name]
+	if !ok {
+		return value, fmt.Errorf("counter metric with name '%s' not found", name)
+	}
+	return value, nil
 }
 
 func (m *memoryStorage) GetAllMetrics() []Metric {
