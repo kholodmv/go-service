@@ -29,7 +29,8 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.
 }
 
 func TestUpdateMetric(t *testing.T) {
-	ts := httptest.NewServer(MetricRouter())
+	memoryStorage := storage.NewMemoryStorage()
+	ts := httptest.NewServer(MetricRouter(memoryStorage))
 	defer ts.Close()
 
 	type want struct {
@@ -136,7 +137,8 @@ func TestUpdateMetric(t *testing.T) {
 }
 
 func TestGetAllMetric(t *testing.T) {
-	ts := httptest.NewServer(MetricRouter())
+	memoryStorage := storage.NewMemoryStorage()
+	ts := httptest.NewServer(MetricRouter(memoryStorage))
 	defer ts.Close()
 
 	type want struct {
@@ -189,7 +191,8 @@ func TestGetAllMetric(t *testing.T) {
 }
 
 func TestGetValueMetric(t *testing.T) {
-	ts := httptest.NewServer(MetricRouter())
+	memoryStorage := storage.NewMemoryStorage()
+	ts := httptest.NewServer(MetricRouter(memoryStorage))
 	defer ts.Close()
 
 	type want struct {
