@@ -65,10 +65,15 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 
 func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 	var m models.Metrics
+	var buf bytes.Buffer
 
-	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&m)
+	_, err := buf.ReadFrom(req.Body)
 	if err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err = json.Unmarshal(buf.Bytes(), &m); err != nil {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -77,7 +82,7 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 	case metrics.Counter:
 		counter, ok := mh.repository.GetValueCounterMetric(m.ID)
 		if !ok {
-			http.NotFound(res, req)
+			http.Error(res, err.Error(), http.StatusNotFound)
 			return
 		}
 		m.Delta = &counter
@@ -85,7 +90,7 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 	case metrics.Gauge:
 		gauge, ok := mh.repository.GetValueGaugeMetric(m.ID)
 		if !ok {
-			http.NotFound(res, req)
+			http.Error(res, err.Error(), http.StatusNotFound)
 			return
 		}
 		m.Value = &gauge
