@@ -45,7 +45,12 @@ func main() {
 	connectionsClosed := make(chan struct{})
 	go func() {
 		stop := make(chan os.Signal, 1)
-		signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+		//signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+		signal.Notify(stop,
+			syscall.SIGHUP,
+			syscall.SIGINT,
+			syscall.SIGTERM,
+			syscall.SIGQUIT)
 		<-stop
 		log.Println("Shutting down server")
 
