@@ -17,7 +17,7 @@ var (
 func UseServerStartParams() {
 	flag.StringVar(&FlagRunAddr, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&FlagLogLevel, "l", "info", "log level")
-	flag.IntVar(&FlagStoreInterval, "i", 10, "time interval in sec")
+	flag.IntVar(&FlagStoreInterval, "i", 300, "time interval in sec")
 	flag.StringVar(&FlagFileName, "f", "/tmp/metrics-db.json", "full file path")
 	flag.BoolVar(&FlagRestore, "r", true, "is load previously saved values")
 
