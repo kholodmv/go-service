@@ -166,7 +166,7 @@ func TestGetAllMetric(t *testing.T) {
 	storage := storage.NewMemoryStorage()
 	storage.AddGauge(56.4, "test_gauge_metric")
 	storage.AddCounter(5, "test_counter_metric")
-	getAllHandler := handlers.NewHandler(router, storage)
+	getAllHandler := handlers.NewHandler(router, storage, "", true)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -215,7 +215,7 @@ func TestGetValueMetric(t *testing.T) {
 	storage := storage.NewMemoryStorage()
 	storage.AddGauge(56.4, "nameGaugeMetric")
 	storage.AddCounter(5, "nameCounterMetric")
-	getValueHandler := handlers.NewHandler(router, storage)
+	getValueHandler := handlers.NewHandler(router, storage, "", true)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

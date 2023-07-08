@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/gzip"
 	"github.com/kholodmv/go-service/internal/logger"
+	"os"
 )
 
 type Handler struct {
@@ -12,11 +15,26 @@ type Handler struct {
 	repository storage.MetricRepository
 }
 
-func NewHandler(router chi.Router, repository storage.MetricRepository) *Handler {
+func NewHandler(router chi.Router, repository storage.MetricRepository, filename string, restore bool) *Handler {
 	h := &Handler{
 		repository: repository,
 		router:     router,
 	}
+
+	if restore {
+		file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
+		if err != nil {
+			fmt.Printf("can not open file: %s\n", err)
+		}
+		defer file.Close()
+
+		decoder := json.NewDecoder(file)
+		err = decoder.Decode(&h.repository)
+		if err != nil {
+			fmt.Printf("failed restore data in file: %s\n", err)
+		}
+	}
+
 	h.router.Use(gzip.GzipHandle)
 	return h
 }

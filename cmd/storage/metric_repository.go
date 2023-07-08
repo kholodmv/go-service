@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"encoding/json"
+	"os"
 	"sync"
 )
 
@@ -15,6 +17,7 @@ type MetricRepository interface {
 	GetValueGaugeMetric(name string) (float64, bool)
 	GetValueCounterMetric(name string) (int64, bool)
 	GetAllMetrics() []Metric
+	WriteAndSaveMetricsToFile(filename string) error
 }
 
 type memoryStorage struct {
@@ -78,4 +81,38 @@ func (m *memoryStorage) AddGauge(value float64, name string) {
 	defer m.mu.Unlock()
 
 	m.gaugeMetrics[name] = value
+}
+
+func (m *memoryStorage) WriteAndSaveMetricsToFile(filename string) error {
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = file.Truncate(0)
+	if err != nil {
+		return err
+	}
+
+	dataGauge, err := json.MarshalIndent(m.gaugeMetrics, "", "   ")
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(dataGauge)
+	if err != nil {
+		return err
+	}
+
+	dataCounter, err := json.MarshalIndent(m.counterMetrics, "", "   ")
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(dataCounter)
+	if err != nil {
+		return err
+	}
+	return nil
 }
