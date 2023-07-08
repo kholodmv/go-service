@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"github.com/kholodmv/go-service/internal/models"
 	"os"
 	"sync"
 )
@@ -17,6 +18,7 @@ type MetricRepository interface {
 	GetValueGaugeMetric(name string) (float64, bool)
 	GetValueCounterMetric(name string) (int64, bool)
 	GetAllMetrics() []Metric
+	GetAllMetricsJSON() []models.Metrics
 	WriteAndSaveMetricsToFile(filename string) error
 }
 
@@ -63,6 +65,20 @@ func (m *memoryStorage) GetAllMetrics() []Metric {
 	return metrics
 }
 
+func (m *memoryStorage) GetAllMetricsJSON() []models.Metrics {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	metrics := make([]models.Metrics, 0, len(m.gaugeMetrics)+len(m.counterMetrics))
+	for name, value := range m.gaugeMetrics {
+		metrics = append(metrics, models.Metrics{ID: name, MType: "gauge", Value: &value})
+	}
+	for name, value := range m.counterMetrics {
+		metrics = append(metrics, models.Metrics{ID: name, MType: "counter", Delta: &value})
+	}
+	return metrics
+}
+
 func (m *memoryStorage) AddCounter(value int64, name string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -95,24 +111,17 @@ func (m *memoryStorage) WriteAndSaveMetricsToFile(filename string) error {
 		return err
 	}
 
-	dataGauge, err := json.MarshalIndent(m.gaugeMetrics, "", "   ")
+	metrics := m.GetAllMetricsJSON()
+
+	data, err := json.MarshalIndent(metrics, "", "   ")
 	if err != nil {
 		return err
 	}
 
-	_, err = file.Write(dataGauge)
+	_, err = file.Write(data)
 	if err != nil {
 		return err
 	}
 
-	dataCounter, err := json.MarshalIndent(m.counterMetrics, "", "   ")
-	if err != nil {
-		return err
-	}
-
-	_, err = file.Write(dataCounter)
-	if err != nil {
-		return err
-	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/gzip"
 	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/models"
 	"os"
 )
 
@@ -28,10 +29,21 @@ func NewHandler(router chi.Router, repository storage.MetricRepository, filename
 		}
 		defer file.Close()
 
+		metrics := &[]models.Metrics{}
+
 		decoder := json.NewDecoder(file)
-		err = decoder.Decode(&h.repository)
+		err = decoder.Decode(&metrics)
+
 		if err != nil {
-			fmt.Printf("failed restore data in file: %s\n", err)
+			fmt.Printf("can not restore data: %s\n", err)
+		}
+
+		for _, metric := range *metrics {
+			if metric.MType == "gauge" {
+				h.repository.AddGauge(*metric.Value, metric.ID)
+			} else if metric.MType == "counter" {
+				h.repository.AddCounter(*metric.Delta, metric.ID)
+			}
 		}
 	}
 
