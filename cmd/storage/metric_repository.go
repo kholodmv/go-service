@@ -71,10 +71,14 @@ func (m *memoryStorage) GetAllMetricsJSON() []models.Metrics {
 
 	metrics := make([]models.Metrics, 0, len(m.gaugeMetrics)+len(m.counterMetrics))
 	for name, value := range m.gaugeMetrics {
-		metrics = append(metrics, models.Metrics{ID: name, MType: "gauge", Value: &value})
+		v := value
+		m := models.Metrics{ID: name, MType: "gauge", Value: &v}
+		metrics = append(metrics, m)
 	}
 	for name, value := range m.counterMetrics {
-		metrics = append(metrics, models.Metrics{ID: name, MType: "counter", Delta: &value})
+		v := value
+		m := models.Metrics{ID: name, MType: "counter", Delta: &v}
+		metrics = append(metrics, m)
 	}
 	return metrics
 }
