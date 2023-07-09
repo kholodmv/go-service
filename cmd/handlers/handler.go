@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/gzip"
+	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/kholodmv/go-service/internal/models"
 	"os"
 )
@@ -24,7 +25,7 @@ func NewHandler(router chi.Router, repository storage.MetricRepository, filename
 	if restore {
 		file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 		if err != nil {
-			fmt.Printf("can not open file: %s\n", err)
+			fmt.Printf("Сan not open file: %s\n", err)
 		}
 		defer file.Close()
 
@@ -32,9 +33,8 @@ func NewHandler(router chi.Router, repository storage.MetricRepository, filename
 
 		decoder := json.NewDecoder(file)
 		err = decoder.Decode(&metrics)
-
 		if err != nil {
-			fmt.Printf("can not restore data: %s\n", err)
+			fmt.Printf("Сan not restore data: %s\n", err)
 		}
 
 		for _, metric := range *metrics {
@@ -51,10 +51,10 @@ func NewHandler(router chi.Router, repository storage.MetricRepository, filename
 }
 
 func (mh *Handler) RegisterRoutes(router *chi.Mux) {
-	router.Post("/update/{type}/{name}/{value}", mh.UpdateMetric)
-	router.Get("/value/{type}/{name}", mh.GetValueMetric)
-	router.Get("/", mh.GetAllMetric)
+	router.Post("/update/{type}/{name}/{value}", logger.RequestLogger(mh.UpdateMetric))
+	router.Get("/value/{type}/{name}", logger.RequestLogger(mh.GetValueMetric))
+	router.Get("/", logger.RequestLogger(mh.GetAllMetric))
 
-	router.Post("/value/", mh.GetJSONMetric)
-	router.Post("/update/", mh.UpdateJSONMetric)
+	router.Post("/value/", logger.RequestLogger(mh.GetJSONMetric))
+	router.Post("/update/", logger.RequestLogger(mh.UpdateJSONMetric))
 }

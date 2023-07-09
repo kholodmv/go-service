@@ -31,7 +31,6 @@ func UseServerStartParams() {
 	}
 	if envStoreInterval := os.Getenv("STORE_INTERVAL"); envStoreInterval != "" {
 		fmt.Sscanf(envStoreInterval, "%d", FlagStoreInterval)
-
 	}
 	if envFileName := os.Getenv("FILE_STORAGE_PATH"); envFileName != "" {
 		FlagFileName = envFileName

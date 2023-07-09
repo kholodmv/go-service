@@ -20,8 +20,6 @@ type PathParam struct {
 }
 
 func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-
 	var m models.Metrics
 	var buf bytes.Buffer
 
@@ -44,6 +42,7 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 		}
 		mh.repository.AddCounter(*m.Delta, m.ID)
 		res.WriteHeader(http.StatusOK)
+
 	case metrics.Gauge:
 		if m.Value == nil {
 			http.Error(res, "Metric value type gauge should not be empty", http.StatusBadRequest)
@@ -51,6 +50,7 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 		}
 		mh.repository.AddGauge(*m.Value, m.ID)
 		res.WriteHeader(http.StatusOK)
+
 	default:
 		http.Error(res, "Incorrect metric type", http.StatusBadRequest)
 	}
@@ -60,6 +60,8 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	res.Header().Set("Content-Type", "application/json")
 	res.Write(resp)
 }
 
@@ -83,6 +85,7 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 		counter, _ := mh.repository.GetValueCounterMetric(m.ID)
 		m.Delta = &counter
 		m.MType = metrics.Counter
+
 	case metrics.Gauge:
 		gauge, _ := mh.repository.GetValueGaugeMetric(m.ID)
 		m.Value = &gauge
@@ -101,8 +104,6 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 }
 
 func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/plain")
-
 	typeMetric := chi.URLParam(req, "type")
 	name := chi.URLParam(req, "name")
 
@@ -123,12 +124,11 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	strValue := fmt.Sprintf("%v", value)
 
 	io.WriteString(res, strValue)
+	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusOK)
 }
 
 func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/html; charset=utf-8")
-
 	metrics := mh.repository.GetAllMetrics()
 
 	var str string
@@ -137,12 +137,11 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Fprint(res, str)
+	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 	res.WriteHeader(http.StatusOK)
 }
 
 func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/plain")
-
 	params, err := isValidParams(req)
 	if !err {
 		http.Error(res, "Invalid request", http.StatusNotFound)
@@ -167,6 +166,7 @@ func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(http.StatusOK)
 }
 
