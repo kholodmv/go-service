@@ -19,7 +19,7 @@ func UseServerStartParams() ServerConfig {
 
 	flag.StringVar(&c.RunAddress, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&c.LogLevel, "l", "info", "log level")
-	flag.IntVar(&c.StoreInterval, "i", 20, "time interval in sec")
+	flag.IntVar(&c.StoreInterval, "i", 300, "time interval in sec")
 	flag.StringVar(&c.FileName, "f", "/tmp/metrics-db.json", "full file path")
 	flag.BoolVar(&c.Restore, "r", true, "is load previously saved values")
 

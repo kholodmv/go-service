@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
+	"github.com/kholodmv/go-service/internal/configs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -30,7 +31,8 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.
 
 func TestUpdateMetric(t *testing.T) {
 	memoryStorage := storage.NewMemoryStorage()
-	ts := httptest.NewServer(MetricRouter(memoryStorage))
+	cfg := configs.UseServerStartParams()
+	ts := httptest.NewServer(MetricRouter(memoryStorage, &cfg))
 	defer ts.Close()
 
 	type want struct {
@@ -138,7 +140,8 @@ func TestUpdateMetric(t *testing.T) {
 
 func TestGetAllMetric(t *testing.T) {
 	memoryStorage := storage.NewMemoryStorage()
-	ts := httptest.NewServer(MetricRouter(memoryStorage))
+	cfg := configs.UseServerStartParams()
+	ts := httptest.NewServer(MetricRouter(memoryStorage, &cfg))
 	defer ts.Close()
 
 	type want struct {
@@ -192,7 +195,8 @@ func TestGetAllMetric(t *testing.T) {
 
 func TestGetValueMetric(t *testing.T) {
 	memoryStorage := storage.NewMemoryStorage()
-	ts := httptest.NewServer(MetricRouter(memoryStorage))
+	cfg := configs.UseServerStartParams()
+	ts := httptest.NewServer(MetricRouter(memoryStorage, &cfg))
 	defer ts.Close()
 
 	type want struct {
