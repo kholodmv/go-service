@@ -15,22 +15,17 @@ import (
 	"time"
 )
 
-func MetricRouter(mem storage.MetricRepository, cfg *configs.ServerConfig) chi.Router {
-	router := chi.NewRouter()
-
-	handler := handlers.NewHandler(router, mem, cfg.FileName, cfg.Restore)
-	handler.RegisterRoutes(router)
-
-	return router
-}
-
 func main() {
 	cfg := configs.UseServerStartParams()
 	memoryStorage := storage.NewMemoryStorage()
+	router := chi.NewRouter()
+
+	handler := handlers.NewHandler(router, memoryStorage, cfg.FileName, cfg.Restore)
+	handler.RegisterRoutes(router)
 
 	server := http.Server{
 		Addr:    cfg.RunAddress,
-		Handler: MetricRouter(memoryStorage, &cfg),
+		Handler: router,
 	}
 
 	go func() {
