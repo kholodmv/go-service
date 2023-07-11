@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-var Log = zap.NewNop()
-
 type (
 	responseData struct {
 		status int
@@ -31,23 +29,14 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.responseData.status = statusCode
 }
 
-func Initialize(level string) error {
-	lvl, err := zap.ParseAtomicLevel(level)
-	if err != nil {
-		return err
-	}
-	cfg := zap.NewProductionConfig()
-	cfg.Level = lvl
-	zl, err := cfg.Build()
-	if err != nil {
-		return err
-	}
-	Log = zl
-	return nil
-}
+func LoggerHandler(h http.Handler) http.Handler {
+	f := func(w http.ResponseWriter, r *http.Request) {
+		logger, err := zap.NewDevelopment()
+		if err != nil {
+			panic("cannot initialize zap")
+		}
+		defer logger.Sync()
 
-func RequestLogger(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		duration := time.Since(start)
 
@@ -56,20 +45,19 @@ func RequestLogger(h http.HandlerFunc) http.HandlerFunc {
 			size:   0,
 		}
 		lw := loggingResponseWriter{
-			ResponseWriter: w, // встраиваем оригинальный http.ResponseWriter
+			ResponseWriter: w,
 			responseData:   responseData,
 		}
 
-		Log.Info("got incoming HTTP request",
-			zap.String("uri", r.RequestURI),
-			zap.String("method", r.Method),
-			zap.Duration("duration", duration),
-		)
-		h(&lw, r)
+		h.ServeHTTP(&lw, r)
 
-		Log.Info("HTTP response",
-			zap.Int("status", responseData.status),
-			zap.Int("size", responseData.size),
+		logger.Sugar().Infoln(
+			"uri", r.RequestURI,
+			"method", r.Method,
+			"duration", duration,
+			"status", responseData.status,
+			"size", responseData.size,
 		)
 	}
+	return http.HandlerFunc(f)
 }

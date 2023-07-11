@@ -6,7 +6,6 @@ import (
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -16,29 +15,28 @@ import (
 	"time"
 )
 
-func MetricRouter(mem storage.MetricRepository) chi.Router {
+func MetricRouter(mem storage.MetricRepository, cfg *configs.ServerConfig) chi.Router {
 	router := chi.NewRouter()
 
-	handler := handlers.NewHandler(router, mem, configs.FlagFileName, configs.FlagRestore)
+	handler := handlers.NewHandler(router, mem, cfg.FileName, cfg.Restore)
 	handler.RegisterRoutes(router)
 
 	return router
 }
 
 func main() {
-	configs.UseServerStartParams()
-
+	cfg := configs.UseServerStartParams()
 	memoryStorage := storage.NewMemoryStorage()
 
 	server := http.Server{
-		Addr:    configs.FlagRunAddr,
-		Handler: MetricRouter(memoryStorage),
+		Addr:    cfg.RunAddress,
+		Handler: MetricRouter(memoryStorage, &cfg),
 	}
 
 	go func() {
 		for {
-			time.Sleep(time.Second * time.Duration(configs.FlagStoreInterval))
-			memoryStorage.WriteAndSaveMetricsToFile(configs.FlagFileName)
+			time.Sleep(time.Second * time.Duration(cfg.StoreInterval))
+			memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName)
 		}
 	}()
 
@@ -53,7 +51,7 @@ func main() {
 		<-stop
 		log.Println("Shutting down server")
 
-		if err := memoryStorage.WriteAndSaveMetricsToFile(configs.FlagFileName); err != nil {
+		if err := memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName); err != nil {
 			log.Printf("Error during saving data to file: %v", err)
 		}
 		if err := server.Shutdown(context.Background()); err != nil {
@@ -62,9 +60,7 @@ func main() {
 		close(connectionsClosed)
 	}()
 
-	logger.Initialize(configs.FlagLogLevel)
-	logger.Log.Info("Running server", zap.String("address", configs.FlagRunAddr))
-
+	log.Println("Running server", zap.String("address", cfg.RunAddress))
 	err := server.ListenAndServe()
 	if err != nil {
 		panic(err)

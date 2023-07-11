@@ -29,7 +29,7 @@ func NewHandler(router chi.Router, repository storage.MetricRepository, filename
 		}
 		defer file.Close()
 
-		metrics := &[]models.Metrics{}
+		var metrics []models.Metrics
 
 		decoder := json.NewDecoder(file)
 		err = decoder.Decode(&metrics)
@@ -37,7 +37,7 @@ func NewHandler(router chi.Router, repository storage.MetricRepository, filename
 			fmt.Printf("Сan not restore data: %s\n", err)
 		}
 
-		for _, metric := range *metrics {
+		for _, metric := range metrics {
 			if metric.MType == "gauge" {
 				h.repository.AddGauge(*metric.Value, metric.ID)
 			} else if metric.MType == "counter" {
@@ -46,15 +46,16 @@ func NewHandler(router chi.Router, repository storage.MetricRepository, filename
 		}
 	}
 
-	h.router.Use(gzip.GzipHandle)
+	h.router.Use(gzip.GzipHandler)
+	h.router.Use(logger.LoggerHandler)
 	return h
 }
 
 func (mh *Handler) RegisterRoutes(router *chi.Mux) {
-	router.Post("/update/{type}/{name}/{value}", logger.RequestLogger(mh.UpdateMetric))
-	router.Get("/value/{type}/{name}", logger.RequestLogger(mh.GetValueMetric))
-	router.Get("/", logger.RequestLogger(mh.GetAllMetric))
+	router.Post("/update/{type}/{name}/{value}", mh.UpdateMetric)
+	router.Get("/value/{type}/{name}", mh.GetValueMetric)
+	router.Get("/", mh.GetAllMetric)
 
-	router.Post("/value/", logger.RequestLogger(mh.GetJSONMetric))
-	router.Post("/update/", logger.RequestLogger(mh.UpdateJSONMetric))
+	router.Post("/value/", mh.GetJSONMetric)
+	router.Post("/update/", mh.UpdateJSONMetric)
 }
