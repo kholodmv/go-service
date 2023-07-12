@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/kholodmv/go-service/internal/models"
-	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -19,6 +19,8 @@ type Metrics struct {
 	data      []models.Metrics
 	pollCount int64
 }
+
+var log = logger.Initialize()
 
 func Compress(data []byte) ([]byte, error) {
 	var b bytes.Buffer
@@ -44,7 +46,7 @@ func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
 			timeR = 0
 			err := m.SendMetrics(c.Client, c.AgentURL)
 			if err != nil {
-				log.Printf("Failed to send metrics: %v", err)
+				log.Infow("Failed to send metrics: %v", err)
 			}
 		}
 		m.CollectMetrics()
@@ -152,8 +154,8 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
 			return fmt.Errorf("unexpected HTTP response status")
 		}
 
-		log.Println(url)
-		log.Println(resp)
+		log.Info(url)
+		log.Info(resp)
 		url = ""
 	}
 

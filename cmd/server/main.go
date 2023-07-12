@@ -6,8 +6,8 @@ import (
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/logger"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,8 +19,13 @@ func main() {
 	cfg := configs.UseServerStartParams()
 	memoryStorage := storage.NewMemoryStorage()
 	router := chi.NewRouter()
+	log := logger.Initialize()
 
-	handler := handlers.NewHandler(router, memoryStorage, cfg.FileName, cfg.Restore)
+	if cfg.Restore {
+		memoryStorage.RestoreFileWithMetrics(cfg.FileName)
+	}
+
+	handler := handlers.NewHandler(router, memoryStorage)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{
@@ -44,20 +49,19 @@ func main() {
 			syscall.SIGTERM,
 			syscall.SIGQUIT)
 		<-stop
-		log.Println("Shutting down server")
+		log.Info("Shutting down server")
 
 		if err := memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName); err != nil {
-			log.Printf("Error during saving data to file: %v", err)
+			log.Errorf("Error during saving data to file: %v", err)
 		}
 		if err := server.Shutdown(context.Background()); err != nil {
-			log.Printf("HTTP Server Shutdown Error: %v", err)
+			log.Errorf("HTTP Server Shutdown Error: %v", err)
 		}
 		close(connectionsClosed)
 	}()
 
-	log.Println("Running server", zap.String("address", cfg.RunAddress))
-	err := server.ListenAndServe()
-	if err != nil {
-		panic(err)
+	log.Infow("Running server", zap.String("address", cfg.RunAddress))
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatalw(err.Error(), "event", "start server")
 	}
 }

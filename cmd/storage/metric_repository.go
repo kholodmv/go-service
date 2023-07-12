@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/kholodmv/go-service/internal/models"
 	"os"
 	"sync"
@@ -20,6 +21,7 @@ type MetricRepository interface {
 	GetAllMetrics() []Metric
 	GetAllMetricsJSON() []models.Metrics
 	WriteAndSaveMetricsToFile(filename string) error
+	RestoreFileWithMetrics(filename string)
 }
 
 type memoryStorage struct {
@@ -32,6 +34,30 @@ func NewMemoryStorage() MetricRepository {
 	return &memoryStorage{
 		gaugeMetrics:   make(map[string]float64),
 		counterMetrics: make(map[string]int64),
+	}
+}
+
+func (m *memoryStorage) RestoreFileWithMetrics(filename string) {
+	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Printf("Сan not open file: %s\n", err)
+	}
+	defer file.Close()
+
+	var metrics []models.Metrics
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&metrics)
+	if err != nil {
+		fmt.Printf("Сan not restore data: %s\n", err)
+	}
+
+	for _, metric := range metrics {
+		if metric.MType == "gauge" {
+			m.AddGauge(*metric.Value, metric.ID)
+		} else if metric.MType == "counter" {
+			m.AddCounter(*metric.Delta, metric.ID)
+		}
 	}
 }
 

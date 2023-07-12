@@ -18,6 +18,18 @@ type (
 	}
 )
 
+func Initialize() *zap.SugaredLogger {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic("cannot initialize zap")
+	}
+	defer logger.Sync()
+
+	sugar := logger.Sugar()
+
+	return sugar
+}
+
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
