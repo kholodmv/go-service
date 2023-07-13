@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/metrics"
+	"github.com/kholodmv/go-service/internal/models"
 	"io"
 	"net/http"
 	"strconv"
@@ -14,6 +17,99 @@ type PathParam struct {
 	typeP string
 	value string
 	name  string
+}
+
+func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+
+	var m models.Metrics
+	var buf bytes.Buffer
+
+	_, err := buf.ReadFrom(req.Body)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err = json.Unmarshal(buf.Bytes(), &m); err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	switch m.MType {
+	case metrics.Counter:
+		if m.Delta == nil {
+			http.Error(res, "Metric value type counter should not be empty", http.StatusBadRequest)
+			return
+		}
+		mh.repository.AddCounter(*m.Delta, m.ID)
+		res.WriteHeader(http.StatusOK)
+
+	case metrics.Gauge:
+		if m.Value == nil {
+			http.Error(res, "Metric value type gauge should not be empty", http.StatusBadRequest)
+			return
+		}
+		mh.repository.AddGauge(*m.Value, m.ID)
+		res.WriteHeader(http.StatusOK)
+
+	default:
+		http.Error(res, "Incorrect metric type", http.StatusBadRequest)
+	}
+
+	resp, err := json.Marshal(m)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res.Write(resp)
+}
+
+func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
+	var m models.Metrics
+	var buf bytes.Buffer
+
+	_, err := buf.ReadFrom(req.Body)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err = json.Unmarshal(buf.Bytes(), &m); err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	switch m.MType {
+	case metrics.Counter:
+		counter, ok := mh.repository.GetValueCounterMetric(m.ID)
+		if !ok {
+			http.NotFound(res, req)
+			return
+		}
+		m.Delta = &counter
+		m.MType = metrics.Counter
+
+	case metrics.Gauge:
+		gauge, ok := mh.repository.GetValueGaugeMetric(m.ID)
+		if !ok {
+			http.NotFound(res, req)
+			return
+		}
+		m.Value = &gauge
+		m.MType = metrics.Gauge
+	}
+
+	resp, err := json.Marshal(m)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+	res.Write(resp)
 }
 
 func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
@@ -43,7 +139,7 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 }
 
 func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/plain")
+	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	metrics := mh.repository.GetAllMetrics()
 
@@ -53,6 +149,8 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Fprint(res, str)
+	res.Header().Set("Content-Type", "text/html; charset=utf-8")
+	res.WriteHeader(http.StatusOK)
 }
 
 func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {

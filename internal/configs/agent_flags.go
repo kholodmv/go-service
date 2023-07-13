@@ -26,7 +26,7 @@ func InitConfigAgent() ConfigAgent {
 
 	return ConfigAgent{
 		Client:         resty.New(),
-		AgentURL:       "http://" + f.FlagAddress + "/update",
+		AgentURL:       "http://" + f.FlagAddress + "/update/",
 		ReportInterval: f.FlagReportInterval,
 		PollInterval:   f.FlagPollInterval,
 	}

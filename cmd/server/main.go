@@ -1,32 +1,67 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/logger"
+	"go.uber.org/zap"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-func MetricRouter() chi.Router {
-	router := chi.NewRouter()
-
+func main() {
+	cfg := configs.UseServerStartParams()
 	memoryStorage := storage.NewMemoryStorage()
+	router := chi.NewRouter()
+	log := logger.Initialize()
 
-	handler := handlers.NewHandler(memoryStorage)
+	if cfg.Restore {
+		memoryStorage.RestoreFileWithMetrics(cfg.FileName)
+	}
+
+	handler := handlers.NewHandler(router, memoryStorage, *log)
 	handler.RegisterRoutes(router)
 
-	return router
-}
+	server := http.Server{
+		Addr:    cfg.RunAddress,
+		Handler: router,
+	}
 
-func main() {
-	flags := configs.UseServerStartParams()
+	go func() {
+		for {
+			time.Sleep(time.Second * time.Duration(cfg.StoreInterval))
+			memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName)
+		}
+	}()
 
-	fmt.Println("Running server on", flags)
-	
-	err := http.ListenAndServe(flags, MetricRouter())
-	if err != nil {
-		panic(err)
+	connectionsClosed := make(chan struct{})
+	go func() {
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop,
+			syscall.SIGHUP,
+			syscall.SIGINT,
+			syscall.SIGTERM,
+			syscall.SIGQUIT)
+		<-stop
+		log.Info("Shutting down server")
+
+		if err := memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName); err != nil {
+			log.Errorf("Error during saving data to file: %v", err)
+		}
+		if err := server.Shutdown(context.Background()); err != nil {
+			log.Errorf("HTTP Server Shutdown Error: %v", err)
+		}
+		close(connectionsClosed)
+	}()
+
+	log.Infow("Running server", zap.String("address", cfg.RunAddress))
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatalw(err.Error(), "event", "start server")
 	}
 }
