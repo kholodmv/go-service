@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
+	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -41,10 +42,11 @@ func TestGetAllMetric(t *testing.T) {
 		},
 	}
 
+	log := logger.Initialize()
 	storage := storage.NewMemoryStorage()
 	storage.AddGauge(56.4, "test_gauge_metric")
 	storage.AddCounter(5, "test_counter_metric")
-	getAllHandler := handlers.NewHandler(router, storage)
+	getAllHandler := handlers.NewHandler(router, storage, *log)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -90,10 +92,11 @@ func TestGetValueMetric(t *testing.T) {
 		},
 	}
 
+	log := logger.Initialize()
 	storage := storage.NewMemoryStorage()
 	storage.AddGauge(56.4, "nameGaugeMetric")
 	storage.AddCounter(5, "nameCounterMetric")
-	getValueHandler := handlers.NewHandler(router, storage)
+	getValueHandler := handlers.NewHandler(router, storage, *log)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -25,7 +25,7 @@ func main() {
 		memoryStorage.RestoreFileWithMetrics(cfg.FileName)
 	}
 
-	handler := handlers.NewHandler(router, memoryStorage)
+	handler := handlers.NewHandler(router, memoryStorage, *log)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{
