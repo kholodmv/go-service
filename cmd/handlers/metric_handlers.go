@@ -19,6 +19,16 @@ type PathParam struct {
 	name  string
 }
 
+func (mh *Handler) DbConnection(res http.ResponseWriter, _ *http.Request) {
+	err := mh.db.Ping()
+	if err != nil {
+		http.Error(res, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	res.WriteHeader(http.StatusOK)
+	res.Write([]byte("OK"))
+}
+
 func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 
@@ -138,7 +148,7 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
-func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
+func (mh *Handler) GetAllMetric(res http.ResponseWriter, _ *http.Request) {
 	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	metrics := mh.repository.GetAllMetrics()

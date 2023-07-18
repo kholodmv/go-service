@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/storage"
+	dataBase "github.com/kholodmv/go-service/internal/db"
 	"github.com/kholodmv/go-service/internal/gzip"
 	"github.com/kholodmv/go-service/internal/logger"
 	"go.uber.org/zap"
@@ -11,13 +12,15 @@ import (
 type Handler struct {
 	router     chi.Router
 	repository storage.MetricRepository
+	db         dataBase.DbStorage
 	log        zap.SugaredLogger
 }
 
-func NewHandler(router chi.Router, repository storage.MetricRepository, log zap.SugaredLogger) *Handler {
+func NewHandler(router chi.Router, repository storage.MetricRepository, db dataBase.DbStorage, log zap.SugaredLogger) *Handler {
 	h := &Handler{
 		repository: repository,
 		router:     router,
+		db:         db,
 		log:        log,
 	}
 
@@ -34,4 +37,6 @@ func (mh *Handler) RegisterRoutes(router *chi.Mux) {
 
 	router.Post("/value/", mh.GetJSONMetric)
 	router.Post("/update/", mh.UpdateJSONMetric)
+
+	router.Get("/ping", mh.DbConnection)
 }

@@ -6,7 +6,9 @@ import (
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/configs"
+	dataBase "github.com/kholodmv/go-service/internal/db"
 	"github.com/kholodmv/go-service/internal/logger"
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 	"net/http"
 	"os"
@@ -17,6 +19,8 @@ import (
 
 func main() {
 	cfg := configs.UseServerStartParams()
+
+	db := dataBase.NewStorage(cfg.DB)
 	memoryStorage := storage.NewMemoryStorage()
 	router := chi.NewRouter()
 	log := logger.Initialize()
@@ -25,7 +29,7 @@ func main() {
 		memoryStorage.RestoreFileWithMetrics(cfg.FileName)
 	}
 
-	handler := handlers.NewHandler(router, memoryStorage, *log)
+	handler := handlers.NewHandler(router, memoryStorage, db, *log)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{

@@ -7,6 +7,7 @@ import (
 )
 
 type ServerConfig struct {
+	DB            string
 	RunAddress    string
 	LogLevel      string
 	StoreInterval int
@@ -17,6 +18,9 @@ type ServerConfig struct {
 func UseServerStartParams() ServerConfig {
 	var c ServerConfig
 
+	flag.StringVar(&c.DB, "d", fmt.Sprintf("host=%s port=%d dbname=%s sslmode=disable",
+		"localhost", 5000, "postgres"),
+		"connection string to postgres db")
 	flag.StringVar(&c.RunAddress, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&c.LogLevel, "l", "info", "log level")
 	flag.IntVar(&c.StoreInterval, "i", 300, "time interval in sec")
@@ -25,6 +29,9 @@ func UseServerStartParams() ServerConfig {
 
 	flag.Parse()
 
+	if envRunDB := os.Getenv("DATABASE_DSN"); envRunDB != "" {
+		c.DB = envRunDB
+	}
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		c.RunAddress = envRunAddr
 	}
