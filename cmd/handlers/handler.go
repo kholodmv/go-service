@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/kholodmv/go-service/cmd/storage"
 	dataBase "github.com/kholodmv/go-service/internal/db"
 	"github.com/kholodmv/go-service/internal/gzip"
 	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/storage"
 	"go.uber.org/zap"
 )
 

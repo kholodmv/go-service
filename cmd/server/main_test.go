@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/cmd/storage"
 	dataBase "github.com/kholodmv/go-service/internal/db"
 	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"

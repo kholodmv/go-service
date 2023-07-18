@@ -3,22 +3,16 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kholodmv/go-service/cmd/metrics"
 	"github.com/kholodmv/go-service/internal/models"
 	"os"
 	"sync"
 )
 
-type Metric struct {
-	Name  string      `json:"name"`
-	Value interface{} `json:"value"`
-}
-
 type MetricRepository interface {
-	AddCounter(value int64, name string)
-	AddGauge(value float64, name string)
-	GetValueGaugeMetric(name string) (float64, bool)
-	GetValueCounterMetric(name string) (int64, bool)
-	GetAllMetrics() []Metric
+	AddMetric(typeM string, value interface{}, name string)
+	GetValueMetric(typeM string, name string) (interface{}, bool)
+	GetAllMetrics() []models.Metrics
 	GetAllMetricsJSON() []models.Metrics
 	WriteAndSaveMetricsToFile(filename string) error
 	RestoreFileWithMetrics(filename string)
@@ -54,41 +48,42 @@ func (m *memoryStorage) RestoreFileWithMetrics(filename string) {
 
 	for _, metric := range metrics {
 		if metric.MType == "gauge" {
-			m.AddGauge(*metric.Value, metric.ID)
+			m.AddMetric(metric.MType, *metric.Value, metric.ID)
 		} else if metric.MType == "counter" {
-			m.AddCounter(*metric.Delta, metric.ID)
+			m.AddMetric(metric.MType, *metric.Delta, metric.ID)
 		}
 	}
 }
 
-func (m *memoryStorage) GetValueGaugeMetric(name string) (float64, bool) {
+func (m *memoryStorage) GetValueMetric(typeM string, name string) (interface{}, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	value, ok := m.gaugeMetrics[name]
+	var value interface{}
+	var ok bool
+	if typeM == metrics.Gauge {
+		value, ok = m.gaugeMetrics[name]
+	}
+	if typeM == metrics.Counter {
+		value, ok = m.counterMetrics[name]
+	}
 	return value, ok
 }
 
-func (m *memoryStorage) GetValueCounterMetric(name string) (int64, bool) {
+func (m *memoryStorage) GetAllMetrics() []models.Metrics {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	value, ok := m.counterMetrics[name]
-	return value, ok
-}
-
-func (m *memoryStorage) GetAllMetrics() []Metric {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	metrics := make([]Metric, 0, len(m.gaugeMetrics)+len(m.counterMetrics))
+	allM := make([]models.Metrics, 0, len(m.gaugeMetrics)+len(m.counterMetrics))
 	for name, value := range m.gaugeMetrics {
-		metrics = append(metrics, Metric{Name: name, Value: value})
+		v := value
+		allM = append(allM, models.Metrics{ID: name, MType: metrics.Gauge, Value: &v})
 	}
 	for name, value := range m.counterMetrics {
-		metrics = append(metrics, Metric{Name: name, Value: value})
+		v := value
+		allM = append(allM, models.Metrics{ID: name, MType: metrics.Counter, Delta: &v})
 	}
-	return metrics
+	return allM
 }
 
 func (m *memoryStorage) GetAllMetricsJSON() []models.Metrics {
@@ -109,24 +104,24 @@ func (m *memoryStorage) GetAllMetricsJSON() []models.Metrics {
 	return metrics
 }
 
-func (m *memoryStorage) AddCounter(value int64, name string) {
+func (m *memoryStorage) AddMetric(typeM string, value interface{}, name string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	var newValue int64
+	if typeM == metrics.Counter {
+		var newValue int64
 
-	if existingValue, ok := m.counterMetrics[name]; ok {
-		newValue = existingValue + value
-	} else {
-		newValue = value
+		if existingValue, ok := m.counterMetrics[name]; ok {
+			newValue = existingValue + value.(int64)
+		} else {
+			newValue = value.(int64)
+		}
+		m.counterMetrics[name] = newValue
 	}
-	m.counterMetrics[name] = newValue
-}
-func (m *memoryStorage) AddGauge(value float64, name string) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
 
-	m.gaugeMetrics[name] = value
+	if typeM == metrics.Gauge {
+		m.gaugeMetrics[name] = value.(float64)
+	}
 }
 
 func (m *memoryStorage) WriteAndSaveMetricsToFile(filename string) error {

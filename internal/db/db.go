@@ -18,21 +18,14 @@ func NewStorage(path string) DBStorage {
 	s := &Storage{
 		storagePath: path,
 	}
-	err := s.initDB()
-	if err != nil {
-		log.Printf("Database initialization error: %v", err)
-	}
-	return s
-}
-
-func (s *Storage) initDB() error {
 	db, err := sql.Open("postgres", s.storagePath)
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
 	}
 	s.db = db
+	s.createTable()
 
-	return nil
+	return s
 }
 
 func (s *Storage) Ping() error {
@@ -43,3 +36,36 @@ func (s *Storage) Ping() error {
 
 	return nil
 }
+
+func (s *Storage) createTable() error {
+	const query = `
+	CREATE TABLE IF NOT EXISTS metrics (
+		id SERIAL PRIMARY KEY,
+		name TEXT NOT NULL,
+		type TEXT NOT NULL,
+		value DOUBLE PRECISION,
+		delta BIGINT
+	);
+	`
+
+	_, err := s.db.Exec(query)
+	return err
+}
+
+/*func (s *Storage) GetAllMetrics() error {
+	row := s.db.QueryRowContext(context.Background(),
+		"SELECT name, type, value, delta "+
+			"FROM videos ORDER BY likes DESC LIMIT 1")
+	var (
+		title  string
+		likes  int
+		comdis bool
+	)
+	// порядок переменных должен соответствовать порядку колонок в запросе
+	err = row.Scan(&title, &likes, &comdis)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s | %d | %t \r\n", title, likes, comdis)
+}
+*/

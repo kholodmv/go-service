@@ -4,10 +4,10 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/configs"
 	dataBase "github.com/kholodmv/go-service/internal/db"
 	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/storage"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 	"net/http"
@@ -20,7 +20,11 @@ import (
 func main() {
 	cfg := configs.UseServerStartParams()
 
-	db := dataBase.NewStorage(cfg.DB)
+	var db dataBase.DBStorage
+	if cfg.DB != "" {
+		db = dataBase.NewStorage(cfg.DB)
+	}
+
 	memoryStorage := storage.NewMemoryStorage()
 	router := chi.NewRouter()
 	log := logger.Initialize()

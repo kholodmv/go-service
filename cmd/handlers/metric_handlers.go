@@ -52,7 +52,7 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 			http.Error(res, "Metric value type counter should not be empty", http.StatusBadRequest)
 			return
 		}
-		mh.repository.AddCounter(*m.Delta, m.ID)
+		mh.repository.AddMetric(metrics.Counter, *m.Delta, m.ID)
 		res.WriteHeader(http.StatusOK)
 
 	case metrics.Gauge:
@@ -60,7 +60,7 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 			http.Error(res, "Metric value type gauge should not be empty", http.StatusBadRequest)
 			return
 		}
-		mh.repository.AddGauge(*m.Value, m.ID)
+		mh.repository.AddMetric(metrics.Gauge, *m.Value, m.ID)
 		res.WriteHeader(http.StatusOK)
 
 	default:
@@ -93,21 +93,23 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 
 	switch m.MType {
 	case metrics.Counter:
-		counter, ok := mh.repository.GetValueCounterMetric(m.ID)
+		counter, ok := mh.repository.GetValueMetric(metrics.Counter, m.ID)
 		if !ok {
 			http.NotFound(res, req)
 			return
 		}
-		m.Delta = &counter
+		v := counter.(int64)
+		m.Delta = &v
 		m.MType = metrics.Counter
 
 	case metrics.Gauge:
-		gauge, ok := mh.repository.GetValueGaugeMetric(m.ID)
+		gauge, ok := mh.repository.GetValueMetric(metrics.Gauge, m.ID)
 		if !ok {
 			http.NotFound(res, req)
 			return
 		}
-		m.Value = &gauge
+		v := gauge.(float64)
+		m.Value = &v
 		m.MType = metrics.Gauge
 	}
 
@@ -132,10 +134,10 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	var ok bool
 
 	if typeMetric == metrics.Gauge {
-		value, ok = mh.repository.GetValueGaugeMetric(name)
+		value, ok = mh.repository.GetValueMetric(metrics.Gauge, name)
 	}
 	if typeMetric == metrics.Counter {
-		value, ok = mh.repository.GetValueCounterMetric(name)
+		value, ok = mh.repository.GetValueMetric(metrics.Counter, name)
 	}
 
 	if !ok {
@@ -151,11 +153,17 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 func (mh *Handler) GetAllMetric(res http.ResponseWriter, _ *http.Request) {
 	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	metrics := mh.repository.GetAllMetrics()
+	allM := mh.repository.GetAllMetrics()
 
 	var str string
-	for _, metric := range metrics {
-		str += fmt.Sprintf("%q : %v\n", metric.Name, metric.Value)
+
+	for _, metric := range allM {
+		if metric.MType == metrics.Gauge {
+			str += fmt.Sprintf("%q : %v\n", metric.ID, metric.Value)
+		}
+		if metric.MType == metrics.Counter {
+			str += fmt.Sprintf("%q : %v\n", metric.ID, metric.Delta)
+		}
 	}
 
 	fmt.Fprint(res, str)
@@ -217,14 +225,14 @@ func checkAndSaveMetric(metricType string, name string, value string, mh *Handle
 		if err != nil {
 			return false
 		}
-		mh.repository.AddGauge(v, name)
+		mh.repository.AddMetric(metrics.Gauge, v, name)
 
 	case metrics.Counter:
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return false
 		}
-		mh.repository.AddCounter(v, name)
+		mh.repository.AddMetric(metrics.Counter, v, name)
 	}
 	return true
 }
