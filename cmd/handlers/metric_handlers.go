@@ -19,7 +19,7 @@ type PathParam struct {
 	name  string
 }
 
-func (mh *Handler) DbConnection(res http.ResponseWriter, _ *http.Request) {
+func (mh *Handler) DBConnection(res http.ResponseWriter, _ *http.Request) {
 	err := mh.db.Ping()
 	if err != nil {
 		http.Error(res, "Internal Server Error", http.StatusInternalServerError)
