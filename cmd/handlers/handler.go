@@ -12,11 +12,11 @@ import (
 type Handler struct {
 	router     chi.Router
 	repository storage.MetricRepository
-	db         dataBase.DbStorage
+	db         dataBase.DBStorage
 	log        zap.SugaredLogger
 }
 
-func NewHandler(router chi.Router, repository storage.MetricRepository, db dataBase.DbStorage, log zap.SugaredLogger) *Handler {
+func NewHandler(router chi.Router, repository storage.MetricRepository, db dataBase.DBStorage, log zap.SugaredLogger) *Handler {
 	h := &Handler{
 		repository: repository,
 		router:     router,

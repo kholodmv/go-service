@@ -10,22 +10,22 @@ type Storage struct {
 	storagePath string
 }
 
-type DbStorage interface {
+type DBStorage interface {
 	Ping() error
 }
 
-func NewStorage(path string) DbStorage {
+func NewStorage(path string) DBStorage {
 	s := &Storage{
 		storagePath: path,
 	}
-	err := s.initDb()
+	err := s.initDB()
 	if err != nil {
 		log.Printf("Database initialization error: %v", err)
 	}
 	return s
 }
 
-func (s *Storage) initDb() error {
+func (s *Storage) initDB() error {
 	db, err := sql.Open("postgres", s.storagePath)
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
