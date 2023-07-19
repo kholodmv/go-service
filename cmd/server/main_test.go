@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
+	"github.com/kholodmv/go-service/cmd/metrics"
 	dataBase "github.com/kholodmv/go-service/internal/db"
 	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/kholodmv/go-service/internal/storage"
@@ -46,8 +47,8 @@ func TestGetAllMetric(t *testing.T) {
 	log := logger.Initialize()
 	storage := storage.NewMemoryStorage()
 	db := dataBase.NewStorage("")
-	storage.AddGauge(56.4, "test_gauge_metric")
-	storage.AddCounter(5, "test_counter_metric")
+	storage.AddMetric(metrics.Gauge, 56.4, "test_gauge_metric")
+	storage.AddMetric(metrics.Counter, int64(5), "test_counter_metric")
 	getAllHandler := handlers.NewHandler(router, storage, db, *log)
 
 	for _, tt := range tests {
@@ -96,8 +97,8 @@ func TestGetValueMetric(t *testing.T) {
 
 	log := logger.Initialize()
 	storage := storage.NewMemoryStorage()
-	storage.AddGauge(56.4, "nameGaugeMetric")
-	storage.AddCounter(5, "nameCounterMetric")
+	storage.AddMetric(metrics.Gauge, 56.4, "nameGaugeMetric")
+	storage.AddMetric(metrics.Counter, int64(5), "nameCounterMetric")
 	db := dataBase.NewStorage("")
 	getValueHandler := handlers.NewHandler(router, storage, db, *log)
 

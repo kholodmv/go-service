@@ -159,10 +159,12 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, _ *http.Request) {
 
 	for _, metric := range allM {
 		if metric.MType == metrics.Gauge {
-			str += fmt.Sprintf("%q : %v\n", metric.ID, metric.Value)
+			v := strconv.FormatFloat(*metric.Value, 'g', 5, 64)
+			str += fmt.Sprintf("%q : %s\n", metric.ID, v)
 		}
 		if metric.MType == metrics.Counter {
-			str += fmt.Sprintf("%q : %v\n", metric.ID, metric.Delta)
+			v := strconv.FormatInt(*metric.Delta, 10)
+			str += fmt.Sprintf("%q : %s\n", metric.ID, v)
 		}
 	}
 

@@ -38,18 +38,18 @@ func (m *memoryStorage) RestoreFileWithMetrics(filename string) {
 	}
 	defer file.Close()
 
-	var metrics []models.Metrics
+	var allM []models.Metrics
 
 	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&metrics)
+	err = decoder.Decode(&allM)
 	if err != nil {
 		fmt.Printf("Сan not restore data: %s\n", err)
 	}
 
-	for _, metric := range metrics {
-		if metric.MType == "gauge" {
+	for _, metric := range allM {
+		if metric.MType == metrics.Gauge {
 			m.AddMetric(metric.MType, *metric.Value, metric.ID)
-		} else if metric.MType == "counter" {
+		} else if metric.MType == metrics.Counter {
 			m.AddMetric(metric.MType, *metric.Delta, metric.ID)
 		}
 	}
@@ -77,11 +77,13 @@ func (m *memoryStorage) GetAllMetrics() []models.Metrics {
 	allM := make([]models.Metrics, 0, len(m.gaugeMetrics)+len(m.counterMetrics))
 	for name, value := range m.gaugeMetrics {
 		v := value
-		allM = append(allM, models.Metrics{ID: name, MType: metrics.Gauge, Value: &v})
+		m := models.Metrics{ID: name, MType: metrics.Gauge, Value: &v}
+		allM = append(allM, m)
 	}
 	for name, value := range m.counterMetrics {
 		v := value
-		allM = append(allM, models.Metrics{ID: name, MType: metrics.Counter, Delta: &v})
+		m := models.Metrics{ID: name, MType: metrics.Counter, Delta: &v}
+		allM = append(allM, m)
 	}
 	return allM
 }
@@ -90,18 +92,18 @@ func (m *memoryStorage) GetAllMetricsJSON() []models.Metrics {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	metrics := make([]models.Metrics, 0, len(m.gaugeMetrics)+len(m.counterMetrics))
+	allM := make([]models.Metrics, 0, len(m.gaugeMetrics)+len(m.counterMetrics))
 	for name, value := range m.gaugeMetrics {
 		v := value
-		m := models.Metrics{ID: name, MType: "gauge", Value: &v}
-		metrics = append(metrics, m)
+		m := models.Metrics{ID: name, MType: metrics.Gauge, Value: &v}
+		allM = append(allM, m)
 	}
 	for name, value := range m.counterMetrics {
 		v := value
-		m := models.Metrics{ID: name, MType: "counter", Delta: &v}
-		metrics = append(metrics, m)
+		m := models.Metrics{ID: name, MType: metrics.Counter, Delta: &v}
+		allM = append(allM, m)
 	}
-	return metrics
+	return allM
 }
 
 func (m *memoryStorage) AddMetric(typeM string, value interface{}, name string) {
