@@ -19,14 +19,13 @@ import (
 func main() {
 	cfg := configs.UseServerStartParams()
 
-	/*var db store.Storage
+	var db store.Storage
 	if cfg.DB != "" {
 		db = store.NewStorage(cfg.DB)
-	} else {
+	}
+	if db == nil {
 		db = store.NewMemoryStorage()
-	}*/
-
-	var db = store.NewMemoryStorage()
+	}
 
 	router := chi.NewRouter()
 	log := logger.Initialize()
