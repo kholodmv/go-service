@@ -118,31 +118,18 @@ func (s *DBStorage) AddMetric(ctx context.Context, typeM string, value interface
 	}
 	defer tx.Rollback()
 
-	var stmt *sql.Stmt
 	if typeM == metrics.Gauge {
-		stmt, err = tx.PrepareContext(ctx,
+		_, err = s.db.ExecContext(ctx,
 			"INSERT INTO metrics (name, type, value)"+
-				" VALUES(?,?,?)")
-		if err != nil {
-			return err
-		}
-		defer stmt.Close()
-
-		_, err = stmt.ExecContext(ctx, name, typeM, value)
+				" VALUES($1,$2,$3)", name, typeM, value)
 		if err != nil {
 			return err
 		}
 	}
 	if typeM == metrics.Counter {
-		stmt, err = tx.PrepareContext(ctx,
+		_, err = s.db.ExecContext(ctx,
 			"INSERT INTO metrics (name, type, delta)"+
-				" VALUES(?,?,?)")
-		if err != nil {
-			return err
-		}
-		defer stmt.Close()
-
-		_, err = stmt.ExecContext(ctx, name, typeM, value)
+				" VALUES($1,$2,$3)", name, typeM, value)
 		if err != nil {
 			return err
 		}
