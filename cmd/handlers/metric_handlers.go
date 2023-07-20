@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
@@ -52,7 +53,7 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 			http.Error(res, "Metric value type counter should not be empty", http.StatusBadRequest)
 			return
 		}
-		mh.repository.AddMetric(metrics.Counter, *m.Delta, m.ID)
+		mh.db.AddMetric(req.Context(), metrics.Counter, *m.Delta, m.ID)
 		res.WriteHeader(http.StatusOK)
 
 	case metrics.Gauge:
@@ -60,7 +61,7 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 			http.Error(res, "Metric value type gauge should not be empty", http.StatusBadRequest)
 			return
 		}
-		mh.repository.AddMetric(metrics.Gauge, *m.Value, m.ID)
+		mh.db.AddMetric(req.Context(), metrics.Gauge, *m.Value, m.ID)
 		res.WriteHeader(http.StatusOK)
 
 	default:
@@ -93,7 +94,7 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 
 	switch m.MType {
 	case metrics.Counter:
-		counter, ok := mh.repository.GetValueMetric(metrics.Counter, m.ID)
+		counter, ok := mh.db.GetValueMetric(req.Context(), metrics.Counter, m.ID)
 		if !ok {
 			http.NotFound(res, req)
 			return
@@ -103,7 +104,7 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 		m.MType = metrics.Counter
 
 	case metrics.Gauge:
-		gauge, ok := mh.repository.GetValueMetric(metrics.Gauge, m.ID)
+		gauge, ok := mh.db.GetValueMetric(req.Context(), metrics.Gauge, m.ID)
 		if !ok {
 			http.NotFound(res, req)
 			return
@@ -134,10 +135,10 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	var ok bool
 
 	if typeMetric == metrics.Gauge {
-		value, ok = mh.repository.GetValueMetric(metrics.Gauge, name)
+		value, ok = mh.db.GetValueMetric(req.Context(), metrics.Gauge, name)
 	}
 	if typeMetric == metrics.Counter {
-		value, ok = mh.repository.GetValueMetric(metrics.Counter, name)
+		value, ok = mh.db.GetValueMetric(req.Context(), metrics.Counter, name)
 	}
 
 	if !ok {
@@ -150,10 +151,11 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
-func (mh *Handler) GetAllMetric(res http.ResponseWriter, _ *http.Request) {
+func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	allM := mh.repository.GetAllMetrics()
+	size := mh.db.GetCountMetrics(req.Context())
+	allM := mh.db.GetAllMetrics(req.Context(), size)
 
 	var str string
 
@@ -193,8 +195,7 @@ func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Invalid metric name", http.StatusNotFound)
 		return
 	}
-
-	err = checkAndSaveMetric(params.typeP, params.name, params.value, mh)
+	err = checkAndSaveMetric(params.typeP, params.name, params.value, mh, req.Context())
 	if !err {
 		http.Error(res, "Invalid metric value", http.StatusBadRequest)
 		return
@@ -220,21 +221,21 @@ func checkType(metricType string) bool {
 	return true
 }
 
-func checkAndSaveMetric(metricType string, name string, value string, mh *Handler) bool {
+func checkAndSaveMetric(metricType string, name string, value string, mh *Handler, ctx context.Context) bool {
 	switch metricType {
 	case metrics.Gauge:
 		v, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			return false
 		}
-		mh.repository.AddMetric(metrics.Gauge, v, name)
+		mh.db.AddMetric(ctx, metrics.Gauge, v, name)
 
 	case metrics.Counter:
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			return false
 		}
-		mh.repository.AddMetric(metrics.Counter, v, name)
+		mh.db.AddMetric(ctx, metrics.Counter, v, name)
 	}
 	return true
 }

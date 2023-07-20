@@ -5,9 +5,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/internal/configs"
-	dataBase "github.com/kholodmv/go-service/internal/db"
 	"github.com/kholodmv/go-service/internal/logger"
-	"github.com/kholodmv/go-service/internal/storage"
+	"github.com/kholodmv/go-service/internal/store"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 	"net/http"
@@ -20,20 +19,21 @@ import (
 func main() {
 	cfg := configs.UseServerStartParams()
 
-	var db dataBase.DBStorage
+	var db store.Storage
 	if cfg.DB != "" {
-		db = dataBase.NewStorage(cfg.DB)
+		db = store.NewStorage(cfg.DB)
+	} else {
+		db = store.NewMemoryStorage()
 	}
 
-	memoryStorage := storage.NewMemoryStorage()
 	router := chi.NewRouter()
 	log := logger.Initialize()
 
 	if cfg.Restore {
-		memoryStorage.RestoreFileWithMetrics(cfg.FileName)
+		db.RestoreFileWithMetrics(cfg.FileName)
 	}
 
-	handler := handlers.NewHandler(router, memoryStorage, db, *log)
+	handler := handlers.NewHandler(router, db, *log)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{
@@ -44,7 +44,7 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(time.Second * time.Duration(cfg.StoreInterval))
-			memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName)
+			db.WriteAndSaveMetricsToFile(cfg.FileName)
 		}
 	}()
 
@@ -59,7 +59,7 @@ func main() {
 		<-stop
 		log.Info("Shutting down server")
 
-		if err := memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName); err != nil {
+		if err := db.WriteAndSaveMetricsToFile(cfg.FileName); err != nil {
 			log.Errorf("Error during saving data to file: %v", err)
 		}
 		if err := server.Shutdown(context.Background()); err != nil {
