@@ -18,17 +18,16 @@ import (
 
 func main() {
 	cfg := configs.UseServerStartParams()
+	log := logger.Initialize()
 
 	var db store.Storage
+
 	if cfg.DB != "" {
+		log.Infow("DB main")
 		db = store.NewStorage(cfg.DB)
-	}
-	if db == nil {
-		db = store.NewMemoryStorage()
 	}
 
 	router := chi.NewRouter()
-	log := logger.Initialize()
 
 	if cfg.Restore {
 		db.RestoreFileWithMetrics(cfg.FileName)
