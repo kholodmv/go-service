@@ -19,7 +19,6 @@ import (
 
 func main() {
 	cfg := configs.UseServerStartParams()
-
 	db := dataBase.NewStorage(cfg.DB)
 	memoryStorage := storage.NewMemoryStorage()
 	router := chi.NewRouter()
