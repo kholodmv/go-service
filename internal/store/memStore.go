@@ -40,9 +40,9 @@ func (m *memoryStorage) RestoreFileWithMetrics(filename string) {
 
 	for _, metric := range allM {
 		if metric.MType == metrics.Gauge {
-			m.AddMetric(nil, metric.MType, *metric.Value, metric.ID)
+			m.AddMetric(context.TODO(), metric.MType, *metric.Value, metric.ID)
 		} else if metric.MType == metrics.Counter {
-			m.AddMetric(nil, metric.MType, *metric.Delta, metric.ID)
+			m.AddMetric(context.TODO(), metric.MType, *metric.Delta, metric.ID)
 		}
 	}
 }

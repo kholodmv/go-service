@@ -90,22 +90,21 @@ func (s *DBStorage) GetCountMetrics(ctx context.Context) int64 {
 func (s *DBStorage) GetValueMetric(ctx context.Context, typeM string, name string) (interface{}, bool) {
 	var row *sql.Row
 	var mValue interface{}
-	var ok bool
-
+	var ok = true
 	if typeM == metrics.Gauge {
 		row = s.db.QueryRowContext(ctx,
-			"SELECT value FROM metrics WHERE name = ? AND type = ?", name, typeM)
+			"SELECT value FROM metrics WHERE name = $1 AND type = $2", name, typeM)
 		err := row.Scan(&mValue)
 		if err != nil {
-			panic(err)
+			ok = false
 		}
 	}
 	if typeM == metrics.Counter {
 		row = s.db.QueryRowContext(ctx,
-			"SELECT delta FROM metrics WHERE name = ? AND type = ?", name, typeM)
+			"SELECT delta FROM metrics WHERE name = $1 AND type = $2", name, typeM)
 		err := row.Scan(&mValue)
 		if err != nil {
-			panic(err)
+			ok = false
 		}
 	}
 
