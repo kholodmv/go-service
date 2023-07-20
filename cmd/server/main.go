@@ -20,15 +20,11 @@ func main() {
 	cfg := configs.UseServerStartParams()
 	log := logger.Initialize()
 
-	log.Infow("Main log", zap.String("db", cfg.DB))
-
 	var db store.Storage
 
 	if cfg.DB != "" {
 		db = store.NewStorage(cfg.DB)
-	}
-
-	if db == nil {
+	} else {
 		db = store.NewMemoryStorage()
 	}
 
