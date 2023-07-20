@@ -20,13 +20,7 @@ func NewHandler(router chi.Router, db store.Storage, log zap.SugaredLogger) *Han
 		db:     db,
 		log:    log,
 	}
-	if h.db != nil {
-		log.Infow("DB handler")
-		h.db = db
-	} else {
-		log.Infow("mem handler")
-		h.db = store.NewMemoryStorage()
-	}
+
 	return h
 }
 

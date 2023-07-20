@@ -22,10 +22,7 @@ func main() {
 
 	var db store.Storage
 
-	if cfg.DB != "" {
-		log.Infow("DB main")
-		db = store.NewStorage(cfg.DB)
-	}
+	db = store.NewMemoryStorage()
 
 	router := chi.NewRouter()
 
