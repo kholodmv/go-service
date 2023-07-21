@@ -130,7 +130,7 @@ func (s *DBStorage) UpdateMetric(ctx context.Context, typeM string, value interf
 		}
 	}
 	if typeM == metrics.Counter {
-		result, err := s.db.ExecContext(ctx, "UPDATE metrics SET delta = $2 WHERE name = $1", name, value)
+		result, err := s.db.ExecContext(ctx, "SELECT name, type, value, delta FROM metrics WHERE name=$1", name)
 		if err != nil {
 			return err
 		}
@@ -139,11 +139,26 @@ func (s *DBStorage) UpdateMetric(ctx context.Context, typeM string, value interf
 			return err
 		}
 		if rows == 0 {
-			_, err = s.db.ExecContext(ctx, "INSERT INTO metrics (name, type, delta) VALUES ($1, &2, $3)", name, typeM, value)
+			_, err = s.db.ExecContext(ctx, "INSERT INTO metrics (name, type, delta) VALUES ($1, $2, $3)", name, typeM, value)
 			if err != nil {
 				return err
 			}
 			return nil
+		}
+
+		ms := models.Metrics{}
+		row := s.db.QueryRowContext(ctx, "SELECT name, type, value, delta FROM metrics WHERE name=$1", name)
+		err = row.Scan(&ms.ID, &ms.MType, &ms.Value, &ms.Delta)
+		if err != nil {
+			return err
+		}
+
+		v := value.(int64)
+		count := v + *ms.Delta
+
+		_, err = s.db.ExecContext(ctx, "UPDATE metrics SET delta = $2 WHERE name = $1", name, count)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
