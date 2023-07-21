@@ -77,6 +77,47 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 	res.Write(resp)
 }
 
+func (mh *Handler) UpdatesMetrics(res http.ResponseWriter, req *http.Request) {
+	var m []models.Metrics
+	var buf bytes.Buffer
+
+	_, err := buf.ReadFrom(req.Body)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err = json.Unmarshal(buf.Bytes(), &m); err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	for _, v := range m {
+		switch v.MType {
+		case metrics.Counter:
+			if v.Delta == nil {
+				http.Error(res, "Metric value type counter should not be empty", http.StatusBadRequest)
+				return
+			}
+			mh.db.AddMetric(req.Context(), metrics.Counter, *v.Delta, v.ID)
+			res.WriteHeader(http.StatusOK)
+
+		case metrics.Gauge:
+			if v.Value == nil {
+				http.Error(res, "Metric value type gauge should not be empty", http.StatusBadRequest)
+				return
+			}
+			mh.db.AddMetric(req.Context(), metrics.Gauge, *v.Value, v.ID)
+			res.WriteHeader(http.StatusOK)
+
+		default:
+			http.Error(res, "Incorrect metric type", http.StatusBadRequest)
+		}
+	}
+
+	res.WriteHeader(http.StatusOK)
+}
+
 func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 	var m models.Metrics
 	var buf bytes.Buffer

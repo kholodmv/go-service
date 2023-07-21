@@ -31,9 +31,8 @@ func (mh *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Post("/update/{type}/{name}/{value}", mh.UpdateMetric)
 	router.Get("/value/{type}/{name}", mh.GetValueMetric)
 	router.Get("/", mh.GetAllMetric)
-
 	router.Post("/value/", mh.GetJSONMetric)
 	router.Post("/update/", mh.UpdateJSONMetric)
-
 	router.Get("/ping", mh.DBConnection)
+	router.Post("/updates/", mh.UpdatesMetrics)
 }
