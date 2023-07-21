@@ -28,8 +28,7 @@ func NewStorage(path string) *DBStorage {
 }
 
 func (s *DBStorage) Ping() error {
-	err := s.db.Ping()
-	if err != nil {
+	if err := s.db.Ping(); err != nil {
 		log.Fatal("Failed to ping the database: ", err)
 	}
 
@@ -47,8 +46,10 @@ func (s *DBStorage) createTable() error {
 	);
 	`
 
-	_, err := s.db.Exec(query)
-	return err
+	if _, err := s.db.Exec(query); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *DBStorage) GetAllMetrics(ctx context.Context, size int64) []models.Metrics {
@@ -69,22 +70,23 @@ func (s *DBStorage) GetAllMetrics(ctx context.Context, size int64) []models.Metr
 		allM = append(allM, m)
 	}
 
-	err = rows.Err()
-	if err != nil {
+	if err = rows.Err(); err != nil {
 		return nil
 	}
+
 	return allM
 }
 
 func (s *DBStorage) GetCountMetrics(ctx context.Context) int64 {
 	row := s.db.QueryRowContext(ctx,
 		"SELECT COUNT(*) as count FROM metrics")
-	var count int64
-	err := row.Scan(&count)
-	if err != nil {
+	var sumCount int64
+
+	if err := row.Scan(&sumCount); err != nil {
 		panic(err)
 	}
-	return count
+
+	return sumCount
 }
 
 func (s *DBStorage) GetValueMetric(ctx context.Context, typeM string, name string) (interface{}, bool) {
@@ -94,16 +96,16 @@ func (s *DBStorage) GetValueMetric(ctx context.Context, typeM string, name strin
 	if typeM == metrics.Gauge {
 		row = s.db.QueryRowContext(ctx,
 			"SELECT value FROM metrics WHERE name = $1 AND type = $2", name, typeM)
-		err := row.Scan(&mValue)
-		if err != nil {
+
+		if err := row.Scan(&mValue); err != nil {
 			ok = false
 		}
 	}
 	if typeM == metrics.Counter {
 		row = s.db.QueryRowContext(ctx,
 			"SELECT delta FROM metrics WHERE name = $1 AND type = $2", name, typeM)
-		err := row.Scan(&mValue)
-		if err != nil {
+
+		if err := row.Scan(&mValue); err != nil {
 			ok = false
 		}
 	}
@@ -123,8 +125,7 @@ func (s *DBStorage) AddMetric(ctx context.Context, typeM string, value interface
 			return err
 		}
 		if rows == 0 {
-			_, err = s.db.ExecContext(ctx, "INSERT INTO metrics (name, type, value) VALUES ($1, $2, $3)", name, typeM, value)
-			if err != nil {
+			if _, err = s.db.ExecContext(ctx, "INSERT INTO metrics (name, type, value) VALUES ($1, $2, $3)", name, typeM, value); err != nil {
 				return err
 			}
 		}
@@ -139,8 +140,7 @@ func (s *DBStorage) AddMetric(ctx context.Context, typeM string, value interface
 			return err
 		}
 		if rows == 0 {
-			_, err = s.db.ExecContext(ctx, "INSERT INTO metrics (name, type, delta) VALUES ($1, $2, $3)", name, typeM, value)
-			if err != nil {
+			if _, err = s.db.ExecContext(ctx, "INSERT INTO metrics (name, type, delta) VALUES ($1, $2, $3)", name, typeM, value); err != nil {
 				return err
 			}
 			return nil
@@ -148,16 +148,14 @@ func (s *DBStorage) AddMetric(ctx context.Context, typeM string, value interface
 
 		ms := models.Metrics{}
 		row := s.db.QueryRowContext(ctx, "SELECT name, type, value, delta FROM metrics WHERE name=$1", name)
-		err = row.Scan(&ms.ID, &ms.MType, &ms.Value, &ms.Delta)
-		if err != nil {
+		if err = row.Scan(&ms.ID, &ms.MType, &ms.Value, &ms.Delta); err != nil {
 			return err
 		}
 
 		v := value.(int64)
 		count := v + *ms.Delta
 
-		_, err = s.db.ExecContext(ctx, "UPDATE metrics SET delta = $2 WHERE name = $1", name, count)
-		if err != nil {
+		if _, err = s.db.ExecContext(ctx, "UPDATE metrics SET delta = $2 WHERE name = $1", name, count); err != nil {
 			return err
 		}
 	}
