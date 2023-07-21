@@ -99,7 +99,7 @@ func (mh *Handler) UpdatesMetrics(res http.ResponseWriter, req *http.Request) {
 				http.Error(res, "Metric value type counter should not be empty", http.StatusBadRequest)
 				return
 			}
-			mh.db.AddMetric(req.Context(), metrics.Counter, *v.Delta, v.ID)
+			mh.db.UpdateMetric(req.Context(), metrics.Counter, *v.Delta, v.ID)
 			res.WriteHeader(http.StatusOK)
 
 		case metrics.Gauge:
@@ -107,7 +107,7 @@ func (mh *Handler) UpdatesMetrics(res http.ResponseWriter, req *http.Request) {
 				http.Error(res, "Metric value type gauge should not be empty", http.StatusBadRequest)
 				return
 			}
-			mh.db.AddMetric(req.Context(), metrics.Gauge, *v.Value, v.ID)
+			mh.db.UpdateMetric(req.Context(), metrics.Gauge, *v.Value, v.ID)
 			res.WriteHeader(http.StatusOK)
 
 		default:

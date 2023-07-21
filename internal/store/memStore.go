@@ -155,3 +155,25 @@ func (m *memoryStorage) WriteAndSaveMetricsToFile(filename string) error {
 func (m *memoryStorage) Ping() error {
 	return nil
 }
+
+func (m *memoryStorage) UpdateMetric(_ context.Context, typeM string, value interface{}, name string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if typeM == metrics.Counter {
+		var newValue int64
+
+		if existingValue, ok := m.counterMetrics[name]; ok {
+			newValue = existingValue + value.(int64)
+		} else {
+			newValue = value.(int64)
+		}
+		m.counterMetrics[name] = newValue
+	}
+
+	if typeM == metrics.Gauge {
+		m.gaugeMetrics[name] = value.(float64)
+	}
+
+	return nil
+}

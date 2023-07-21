@@ -10,6 +10,7 @@ type Storage interface {
 	GetCountMetrics(ctx context.Context) int64
 	GetValueMetric(ctx context.Context, typeM string, name string) (interface{}, bool)
 	AddMetric(ctx context.Context, typeM string, value interface{}, name string) error
+	UpdateMetric(ctx context.Context, typeM string, value interface{}, name string) error
 
 	GetAllMetricsJSON() []models.Metrics
 	WriteAndSaveMetricsToFile(filename string) error

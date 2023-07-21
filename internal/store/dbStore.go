@@ -111,6 +111,44 @@ func (s *DBStorage) GetValueMetric(ctx context.Context, typeM string, name strin
 	return mValue, ok
 }
 
+func (s *DBStorage) UpdateMetric(ctx context.Context, typeM string, value interface{}, name string) error {
+	if typeM == metrics.Gauge {
+		result, err := s.db.ExecContext(ctx, "UPDATE metrics SET value = $2 WHERE name = $1", name, value)
+		if err != nil {
+			return err
+		}
+
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if rows == 0 {
+			_, err = s.db.ExecContext(ctx, "INSERT INTO metrics (name, type, value) VALUES ($1, $2, $3)", name, typeM, value)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if typeM == metrics.Counter {
+		result, err := s.db.ExecContext(ctx, "UPDATE metrics SET delta = $2 WHERE name = $1", name, value)
+		if err != nil {
+			return err
+		}
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if rows == 0 {
+			_, err = s.db.ExecContext(ctx, "INSERT INTO metrics (name, type, delta) VALUES ($1, &2, $3)", name, typeM, value)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	return nil
+}
+
 func (s *DBStorage) AddMetric(ctx context.Context, typeM string, value interface{}, name string) error {
 	tx, err := s.db.Begin()
 	if err != nil {
