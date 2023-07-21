@@ -111,7 +111,7 @@ func (s *DBStorage) GetValueMetric(ctx context.Context, typeM string, name strin
 	return mValue, ok
 }
 
-func (s *DBStorage) UpdateMetric(ctx context.Context, typeM string, value interface{}, name string) error {
+func (s *DBStorage) AddMetric(ctx context.Context, typeM string, value interface{}, name string) error {
 	if typeM == metrics.Gauge {
 		result, err := s.db.ExecContext(ctx, "UPDATE metrics SET value = $2 WHERE name = $1", name, value)
 		if err != nil {
@@ -162,33 +162,6 @@ func (s *DBStorage) UpdateMetric(ctx context.Context, typeM string, value interf
 		}
 	}
 	return nil
-}
-
-func (s *DBStorage) AddMetric(ctx context.Context, typeM string, value interface{}, name string) error {
-	tx, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if typeM == metrics.Gauge {
-		_, err = s.db.ExecContext(ctx,
-			"INSERT INTO metrics (name, type, value)"+
-				" VALUES($1,$2,$3)", name, typeM, value)
-		if err != nil {
-			return err
-		}
-	}
-	if typeM == metrics.Counter {
-		_, err = s.db.ExecContext(ctx,
-			"INSERT INTO metrics (name, type, delta)"+
-				" VALUES($1,$2,$3)", name, typeM, value)
-		if err != nil {
-			return err
-		}
-	}
-
-	return tx.Commit()
 }
 
 func (s *DBStorage) GetAllMetricsJSON() []models.Metrics {
