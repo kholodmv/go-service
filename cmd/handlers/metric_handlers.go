@@ -175,24 +175,21 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	var value interface{}
 	var err error
 
-	if typeMetric != metrics.Counter || typeMetric != metrics.Gauge {
-		http.NotFound(res, req)
-		return
-	}
-	
 	if typeMetric == metrics.Gauge {
 		value, err = mh.db.GetValueMetric(req.Context(), metrics.Gauge, name)
 		if err != nil {
 			http.NotFound(res, req)
 			return
 		}
-	}
-	if typeMetric == metrics.Counter {
+	} else if typeMetric == metrics.Counter {
 		value, err = mh.db.GetValueMetric(req.Context(), metrics.Counter, name)
 		if err != nil {
 			http.NotFound(res, req)
 			return
 		}
+	} else {
+		http.NotFound(res, req)
+		return
 	}
 
 	strValue := fmt.Sprintf("%v", value)
