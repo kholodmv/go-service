@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/internal/configs"
@@ -9,6 +10,7 @@ import (
 	"github.com/kholodmv/go-service/internal/store"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,7 +25,8 @@ func main() {
 	var db store.Storage
 
 	if cfg.DB != "" {
-		db = store.NewStorage(cfg.DB)
+		con := connectToDb(cfg.DB)
+		db = store.NewStorage(con, log)
 	} else {
 		db = store.NewMemoryStorage()
 	}
@@ -73,4 +76,12 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalw(err.Error(), "event", "start server")
 	}
+}
+
+func connectToDb(path string) *sql.DB {
+	con, err := sql.Open("postgres", path)
+	if err != nil {
+		log.Fatal("Failed to connect to the database: ", err)
+	}
+	return con
 }

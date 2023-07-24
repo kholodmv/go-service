@@ -6,9 +6,9 @@ import (
 )
 
 type Storage interface {
-	GetAllMetrics(ctx context.Context, size int64) []models.Metrics
-	GetCountMetrics(ctx context.Context) int64
-	GetValueMetric(ctx context.Context, typeM string, name string) (interface{}, bool)
+	GetAllMetrics(ctx context.Context, size int64) ([]models.Metrics, error)
+	GetCountMetrics(ctx context.Context) (int64, error)
+	GetValueMetric(ctx context.Context, typeM string, name string) (interface{}, error)
 	AddMetric(ctx context.Context, typeM string, value interface{}, name string) error
 
 	GetAllMetricsJSON() []models.Metrics

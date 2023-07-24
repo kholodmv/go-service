@@ -135,8 +135,8 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 
 	switch m.MType {
 	case metrics.Counter:
-		counter, ok := mh.db.GetValueMetric(req.Context(), metrics.Counter, m.ID)
-		if !ok {
+		counter, err := mh.db.GetValueMetric(req.Context(), metrics.Counter, m.ID)
+		if err != nil {
 			http.NotFound(res, req)
 			return
 		}
@@ -145,8 +145,8 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 		m.MType = metrics.Counter
 
 	case metrics.Gauge:
-		gauge, ok := mh.db.GetValueMetric(req.Context(), metrics.Gauge, m.ID)
-		if !ok {
+		gauge, err := mh.db.GetValueMetric(req.Context(), metrics.Gauge, m.ID)
+		if err != nil {
 			http.NotFound(res, req)
 			return
 		}
@@ -173,16 +173,15 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	name := chi.URLParam(req, "name")
 
 	var value interface{}
-	var ok bool
-
+	var err error
 	if typeMetric == metrics.Gauge {
-		value, ok = mh.db.GetValueMetric(req.Context(), metrics.Gauge, name)
+		value, err = mh.db.GetValueMetric(req.Context(), metrics.Gauge, name)
 	}
 	if typeMetric == metrics.Counter {
-		value, ok = mh.db.GetValueMetric(req.Context(), metrics.Counter, name)
+		value, err = mh.db.GetValueMetric(req.Context(), metrics.Counter, name)
 	}
 
-	if !ok {
+	if err != nil {
 		http.NotFound(res, req)
 		return
 	}
@@ -195,8 +194,8 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	size := mh.db.GetCountMetrics(req.Context())
-	allM := mh.db.GetAllMetrics(req.Context(), size)
+	size, _ := mh.db.GetCountMetrics(req.Context())
+	allM, _ := mh.db.GetAllMetrics(req.Context(), size)
 
 	var str string
 

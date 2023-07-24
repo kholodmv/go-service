@@ -47,7 +47,7 @@ func (m *memoryStorage) RestoreFileWithMetrics(filename string) {
 	}
 }
 
-func (m *memoryStorage) GetAllMetrics(_ context.Context, size int64) []models.Metrics {
+func (m *memoryStorage) GetAllMetrics(_ context.Context, size int64) ([]models.Metrics, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -62,27 +62,26 @@ func (m *memoryStorage) GetAllMetrics(_ context.Context, size int64) []models.Me
 		m := models.Metrics{ID: name, MType: metrics.Counter, Delta: &v}
 		allM = append(allM, m)
 	}
-	return allM
+	return allM, nil
 }
 
-func (m *memoryStorage) GetCountMetrics(_ context.Context) int64 {
+func (m *memoryStorage) GetCountMetrics(_ context.Context) (int64, error) {
 	s := len(m.gaugeMetrics) + len(m.counterMetrics)
-	return int64(s)
+	return int64(s), nil
 }
 
-func (m *memoryStorage) GetValueMetric(_ context.Context, typeM string, name string) (interface{}, bool) {
+func (m *memoryStorage) GetValueMetric(_ context.Context, typeM string, name string) (interface{}, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	var value interface{}
-	var ok bool
 	if typeM == metrics.Gauge {
-		value, ok = m.gaugeMetrics[name]
+		value = m.gaugeMetrics[name]
 	}
 	if typeM == metrics.Counter {
-		value, ok = m.counterMetrics[name]
+		value = m.counterMetrics[name]
 	}
-	return value, ok
+	return value, nil
 }
 
 func (m *memoryStorage) GetAllMetricsJSON() []models.Metrics {
