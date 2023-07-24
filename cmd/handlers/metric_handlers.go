@@ -173,17 +173,16 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	name := chi.URLParam(req, "name")
 
 	var value interface{}
-	var err error
 
 	if typeMetric == metrics.Gauge {
-		value, err = mh.db.GetValueMetric(req.Context(), metrics.Gauge, name)
-		if err != nil {
+		value, _ = mh.db.GetValueMetric(req.Context(), metrics.Gauge, name)
+		if value == nil {
 			http.NotFound(res, req)
 			return
 		}
 	} else if typeMetric == metrics.Counter {
-		value, err = mh.db.GetValueMetric(req.Context(), metrics.Counter, name)
-		if err != nil {
+		value, _ = mh.db.GetValueMetric(req.Context(), metrics.Counter, name)
+		if value == nil {
 			http.NotFound(res, req)
 			return
 		}

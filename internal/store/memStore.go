@@ -75,11 +75,16 @@ func (m *memoryStorage) GetValueMetric(_ context.Context, typeM string, name str
 	defer m.mu.Unlock()
 
 	var value interface{}
+	var ok bool
+	var err error
 	if typeM == metrics.Gauge {
-		value = m.gaugeMetrics[name]
+		value, ok = m.gaugeMetrics[name]
 	}
 	if typeM == metrics.Counter {
-		value = m.counterMetrics[name]
+		value, ok = m.counterMetrics[name]
+	}
+	if ok == false {
+		return nil, err
 	}
 	return value, nil
 }
