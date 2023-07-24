@@ -25,7 +25,7 @@ func main() {
 	var db store.Storage
 
 	if cfg.DB != "" {
-		con := connectToDb(cfg.DB)
+		con := connectToDB(cfg.DB)
 		db = store.NewStorage(con, log)
 	} else {
 		db = store.NewMemoryStorage()
@@ -78,7 +78,7 @@ func main() {
 	}
 }
 
-func connectToDb(path string) *sql.DB {
+func connectToDB(path string) *sql.DB {
 	con, err := sql.Open("postgres", path)
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
