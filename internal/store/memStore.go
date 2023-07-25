@@ -83,7 +83,7 @@ func (m *memoryStorage) GetValueMetric(_ context.Context, typeM string, name str
 	if typeM == metrics.Counter {
 		value, ok = m.counterMetrics[name]
 	}
-	if ok == false {
+	if !ok {
 		return nil, err
 	}
 	return value, nil
