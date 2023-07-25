@@ -84,6 +84,7 @@ func (m *memoryStorage) GetValueMetric(_ context.Context, typeM string, name str
 		value, ok = m.counterMetrics[name]
 	}
 	if !ok {
+		err = fmt.Errorf("could not find metric with name %s", name)
 		return nil, err
 	}
 	return value, nil
