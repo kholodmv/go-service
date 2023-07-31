@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/cmd/storage"
 	"github.com/kholodmv/go-service/internal/configs"
 	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/store"
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,15 +20,27 @@ import (
 
 func main() {
 	cfg := configs.UseServerStartParams()
-	memoryStorage := storage.NewMemoryStorage()
-	router := chi.NewRouter()
 	log := logger.Initialize()
 
-	if cfg.Restore {
-		memoryStorage.RestoreFileWithMetrics(cfg.FileName)
+	var db store.Storage
+
+	if cfg.DB != "" {
+		con := connectToDB(cfg.DB)
+		s := store.NewStorage(con, log)
+		store.CreateTable(s)
+		db = s
+
+	} else {
+		db = store.NewMemoryStorage()
 	}
 
-	handler := handlers.NewHandler(router, memoryStorage, *log)
+	router := chi.NewRouter()
+
+	if cfg.Restore {
+		db.RestoreFileWithMetrics(cfg.FileName)
+	}
+
+	handler := handlers.NewHandler(router, db, *log)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{
@@ -36,7 +51,7 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(time.Second * time.Duration(cfg.StoreInterval))
-			memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName)
+			db.WriteAndSaveMetricsToFile(cfg.FileName)
 		}
 	}()
 
@@ -51,7 +66,7 @@ func main() {
 		<-stop
 		log.Info("Shutting down server")
 
-		if err := memoryStorage.WriteAndSaveMetricsToFile(cfg.FileName); err != nil {
+		if err := db.WriteAndSaveMetricsToFile(cfg.FileName); err != nil {
 			log.Errorf("Error during saving data to file: %v", err)
 		}
 		if err := server.Shutdown(context.Background()); err != nil {
@@ -64,4 +79,12 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalw(err.Error(), "event", "start server")
 	}
+}
+
+func connectToDB(path string) *sql.DB {
+	con, err := sql.Open("postgres", path)
+	if err != nil {
+		log.Fatal("Failed to connect to the database: ", err)
+	}
+	return con
 }

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/cmd/storage"
+	"github.com/kholodmv/go-service/cmd/metrics"
 	"github.com/kholodmv/go-service/internal/logger"
+	dataBase "github.com/kholodmv/go-service/internal/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -43,9 +45,9 @@ func TestGetAllMetric(t *testing.T) {
 	}
 
 	log := logger.Initialize()
-	storage := storage.NewMemoryStorage()
-	storage.AddGauge(56.4, "test_gauge_metric")
-	storage.AddCounter(5, "test_counter_metric")
+	storage := dataBase.NewMemoryStorage()
+	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "test_gauge_metric")
+	storage.AddMetric(context.TODO(), metrics.Counter, int64(5), "test_counter_metric")
 	getAllHandler := handlers.NewHandler(router, storage, *log)
 
 	for _, tt := range tests {
@@ -93,9 +95,9 @@ func TestGetValueMetric(t *testing.T) {
 	}
 
 	log := logger.Initialize()
-	storage := storage.NewMemoryStorage()
-	storage.AddGauge(56.4, "nameGaugeMetric")
-	storage.AddCounter(5, "nameCounterMetric")
+	storage := dataBase.NewMemoryStorage()
+	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "nameGaugeMetric")
+	storage.AddMetric(context.TODO(), metrics.Counter, int64(5), "nameCounterMetric")
 	getValueHandler := handlers.NewHandler(router, storage, *log)
 
 	for _, tt := range tests {
