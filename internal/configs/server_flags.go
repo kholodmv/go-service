@@ -18,8 +18,7 @@ type ServerConfig struct {
 func UseServerStartParams() ServerConfig {
 	var c ServerConfig
 
-	flag.StringVar(&c.DB, "d", fmt.Sprintf("host=%s port=%d dbname=%s sslmode=disable",
-		"localhost", 5000, "postgres"), "connection string to postgres db")
+	flag.StringVar(&c.DB, "d", "", "connection string to postgres db")
 	flag.StringVar(&c.RunAddress, "a", "localhost:8080", "address and port to run server")
 	flag.StringVar(&c.LogLevel, "l", "info", "log level")
 	flag.IntVar(&c.StoreInterval, "i", 300, "time interval in sec")
