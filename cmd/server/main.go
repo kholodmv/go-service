@@ -26,7 +26,10 @@ func main() {
 
 	if cfg.DB != "" {
 		con := connectToDB(cfg.DB)
-		db = store.NewStorage(con, log)
+		s := store.NewStorage(con, log)
+		store.CreateTable(s)
+		db = s
+
 	} else {
 		db = store.NewMemoryStorage()
 	}

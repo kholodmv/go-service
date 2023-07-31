@@ -18,7 +18,6 @@ func NewStorage(db *sql.DB, log *zap.SugaredLogger) *DBStorage {
 		db:  db,
 		log: log,
 	}
-	s.createTable()
 
 	return s
 }
@@ -29,23 +28,6 @@ func (s *DBStorage) Ping() error {
 		return err
 	}
 
-	return nil
-}
-
-func (s *DBStorage) createTable() error {
-	const query = `
-	CREATE TABLE IF NOT EXISTS metrics (
-		id SERIAL PRIMARY KEY,
-		name TEXT NOT NULL UNIQUE,
-		type TEXT NOT NULL,
-		value DOUBLE PRECISION,
-		delta BIGINT
-	);
-	`
-
-	if _, err := s.db.Exec(query); err != nil {
-		return err
-	}
 	return nil
 }
 
