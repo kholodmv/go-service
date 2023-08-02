@@ -48,7 +48,7 @@ func TestGetAllMetric(t *testing.T) {
 	storage := dataBase.NewMemoryStorage()
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "test_gauge_metric")
 	storage.AddMetric(context.TODO(), metrics.Counter, int64(5), "test_counter_metric")
-	getAllHandler := handlers.NewHandler(router, storage, *log)
+	getAllHandler := handlers.NewHandler(router, storage, *log, "")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -98,7 +98,7 @@ func TestGetValueMetric(t *testing.T) {
 	storage := dataBase.NewMemoryStorage()
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "nameGaugeMetric")
 	storage.AddMetric(context.TODO(), metrics.Counter, int64(5), "nameCounterMetric")
-	getValueHandler := handlers.NewHandler(router, storage, *log)
+	getValueHandler := handlers.NewHandler(router, storage, *log, "")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
