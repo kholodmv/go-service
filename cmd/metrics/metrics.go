@@ -3,6 +3,8 @@ package metrics
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
@@ -44,7 +46,7 @@ func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
 	for {
 		if timeR >= c.ReportInterval {
 			timeR = 0
-			err := m.SendMetrics(c.Client, c.AgentURL)
+			err := m.SendMetrics(c.Client, c.AgentURL, c.Key)
 			if err != nil {
 				log.Infow("Failed to send metrics: %v", err)
 			}
@@ -128,7 +130,7 @@ func (m *Metrics) CollectMetrics() {
 	m.pollCount += 1
 }
 
-func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
+func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string) error {
 	for _, metrics := range m.data {
 		url := agentURL
 
@@ -141,11 +143,23 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
 			fmt.Printf("Error compress JSON: %s\n", err)
 		}
 
-		resp, err := client.R().
-			SetBody(metricsJSON).
-			SetHeader("Content-Encoding", "gzip").
-			SetHeader("Content-Type", "application/json").
-			Post(url)
+		var resp *resty.Response
+		if key != "" {
+			hashedKey := calculateSHA256(key)
+			resp, err = client.R().
+				SetBody(metricsJSON).
+				SetHeader("Content-Encoding", "gzip").
+				SetHeader("Content-Type", "application/json").
+				SetHeader("HashSHA256", hashedKey).
+				Post(url)
+		} else {
+			resp, err = client.R().
+				SetBody(metricsJSON).
+				SetHeader("Content-Encoding", "gzip").
+				SetHeader("Content-Type", "application/json").
+				Post(url)
+		}
+
 		if err != nil {
 			return fmt.Errorf("HTTP POST request failed: %v", err)
 		}
@@ -160,4 +174,9 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string) error {
 	}
 
 	return nil
+}
+
+func calculateSHA256(key string) string {
+	hash := sha256.Sum256([]byte(key))
+	return hex.EncodeToString(hash[:])
 }
