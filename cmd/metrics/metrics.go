@@ -149,7 +149,7 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string)
 			resp, err = client.R().
 				SetBody(metricsJSON).
 				SetHeader("Accept", "application/json").
-				SetHeader("Accept-Encoding", "gzip").
+				SetHeader("Content-Encoding", "gzip").
 				SetHeader("Content-Type", "application/json").
 				SetHeader("HashSHA256", hashedKey).
 				Post(url)
@@ -157,7 +157,7 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string)
 			resp, err = client.R().
 				SetBody(metricsJSON).
 				SetHeader("Accept", "application/json").
-				SetHeader("Accept-Encoding", "gzip").
+				SetHeader("Content-Encoding", "gzip").
 				SetHeader("Content-Type", "application/json").
 				Post(url)
 		}
