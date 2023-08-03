@@ -159,7 +159,6 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string)
 				SetHeader("Accept", "application/json").
 				SetHeader("Accept-Encoding", "gzip").
 				SetHeader("Content-Type", "application/json").
-				SetHeader("Content-Type", "application/json").
 				Post(url)
 		}
 
