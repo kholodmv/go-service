@@ -148,17 +148,17 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string)
 			hashedKey := calculateSHA256(key)
 			resp, err = client.R().
 				SetBody(metricsJSON).
+				SetHeader("Content-Type", "application/json").
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").
-				SetHeader("Content-Type", "application/json").
 				SetHeader("HashSHA256", hashedKey).
 				Post(url)
 		} else {
 			resp, err = client.R().
 				SetBody(metricsJSON).
+				SetHeader("Content-Type", "application/json").
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").
-				SetHeader("Content-Type", "application/json").
 				Post(url)
 		}
 
@@ -169,7 +169,6 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string)
 		if resp.StatusCode() != http.StatusOK {
 			return fmt.Errorf("unexpected HTTP response status")
 		}
-
 		log.Info(url)
 		log.Info(resp)
 		url = ""
