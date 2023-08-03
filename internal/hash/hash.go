@@ -1,6 +1,7 @@
 package hash
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -28,8 +29,7 @@ func HashHandler(next http.Handler) http.Handler {
 		calculatedHash := fmt.Sprintf("%x", sha256.Sum256([]byte(response)))
 		w.Header().Set("HashSHA256", calculatedHash)
 
-		// Write the response
-		w.Write([]byte(response))
+		r.Body = io.NopCloser(bytes.NewReader(body))
 
 		next.ServeHTTP(w, r)
 	})
