@@ -201,9 +201,7 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 }
 
 func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
-	if mh.key != "" {
-		res.Header().Set("Content-Type", "text/html; charset=utf-8")
-	}
+	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	size, _ := mh.db.GetCountMetrics(req.Context())
 	allM, _ := mh.db.GetAllMetrics(req.Context(), size)
@@ -222,9 +220,7 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Fprint(res, str)
-	if mh.key != "" {
-		res.Header().Set("Content-Type", "text/html; charset=utf-8")
-	}
+	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 	res.WriteHeader(http.StatusOK)
 }
 
