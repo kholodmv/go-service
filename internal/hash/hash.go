@@ -18,9 +18,10 @@ func HashHandler(next http.Handler) http.Handler {
 			return
 		}
 		receivedHash := fmt.Sprintf("%x", sha256.Sum256(body))
+		headerHash := r.Header.Get("HashSHA256")
 
-		if r.Header.Get("HashSHA256") != receivedHash {
-			http.Error(w, "Bad Request", http.StatusBadRequest)
+		if headerHash != receivedHash {
+			http.Error(w, "Incorrect HashSHA256 header value", http.StatusBadRequest)
 			return
 		}
 
@@ -30,7 +31,6 @@ func HashHandler(next http.Handler) http.Handler {
 		w.Header().Set("HashSHA256", calculatedHash)
 
 		r.Body = io.NopCloser(bytes.NewReader(body))
-
 		next.ServeHTTP(w, r)
 	})
 }

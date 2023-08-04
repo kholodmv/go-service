@@ -138,6 +138,7 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string)
 		if err != nil {
 			fmt.Printf("Error metrics JSON: %s\n", err)
 		}
+		hashSHA256 := fmt.Sprintf("%x", sha256.Sum256([]byte(metricsJSON)))
 		metricsJSON, err = Compress(metricsJSON)
 		if err != nil {
 			fmt.Printf("Error compress JSON: %s\n", err)
@@ -145,13 +146,12 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string)
 
 		var resp *resty.Response
 		if key != "" {
-			hashedKey := calculateSHA256(key)
 			resp, err = client.R().
 				SetBody(metricsJSON).
 				SetHeader("Content-Type", "application/json").
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").
-				SetHeader("HashSHA256", hashedKey).
+				SetHeader("HashSHA256", hashSHA256).
 				Post(url)
 		} else {
 			resp, err = client.R().
