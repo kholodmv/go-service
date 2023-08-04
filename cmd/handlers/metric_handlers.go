@@ -167,7 +167,7 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 }
 
 func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
-	if mh.key == "" {
+	if mh.key != "" {
 		res.Header().Set("Content-Type", "text/plain")
 	}
 
@@ -229,7 +229,7 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 }
 
 func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
-	if mh.key == "" {
+	if mh.key != "" {
 		res.Header().Set("Content-Type", "text/plain")
 	}
 
