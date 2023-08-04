@@ -26,11 +26,15 @@ func HashHandler(next http.Handler) http.Handler {
 
 		if headerHash == receivedHash {
 			r.Body = io.NopCloser(bytes.NewReader(body))
+			w.Header().Set("Content-Type", "application/json")
 			next.ServeHTTP(w, r)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Incorrect HashSHA256 header value"))
+			w.Header().Set("Content-Type", "application/json")
 		}
+		w.Header().Set("Content-Type", "application/json")
+
 		next.ServeHTTP(w, r)
 	})
 
