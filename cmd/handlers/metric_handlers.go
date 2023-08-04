@@ -221,6 +221,9 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 
 	fmt.Fprint(res, str)
 	res.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if mh.key != "" {
+		res.Header().Set("Content-Type", "lolol")
+	}
 	res.WriteHeader(http.StatusOK)
 }
 
