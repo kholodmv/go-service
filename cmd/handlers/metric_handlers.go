@@ -167,7 +167,9 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 }
 
 func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/plain")
+	if mh.key == "" {
+		res.Header().Set("Content-Type", "text/plain")
+	}
 
 	typeMetric := chi.URLParam(req, "type")
 	name := chi.URLParam(req, "name")
@@ -223,7 +225,9 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 }
 
 func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/plain")
+	if mh.key == "" {
+		res.Header().Set("Content-Type", "text/plain")
+	}
 
 	params, err := isValidParams(req)
 	if !err {
