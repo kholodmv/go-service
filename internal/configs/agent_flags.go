@@ -39,7 +39,7 @@ func useAgentStartParams(f *AgentParams) {
 	flag.StringVar(&f.FlagAddress, "a", "localhost:8080", "HTTP server endpoint address")
 	flag.IntVar(&f.FlagReportInterval, "r", 10, "input report interval")
 	flag.IntVar(&f.FlagPollInterval, "p", 2, "input poll interval")
-	flag.StringVar(&f.FlagKey, "k", "", "KEY for calculating SHA-256 hash")
+	flag.StringVar(&f.FlagKey, "k", "kkk", "KEY for calculating SHA-256 hash")
 
 	flag.Parse()
 
