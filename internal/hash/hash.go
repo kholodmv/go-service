@@ -1,16 +1,12 @@
 package hash
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"fmt"
-	"io"
 	"net/http"
 )
 
 func HashHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
+		/*body, err := io.ReadAll(r.Body)
 		defer r.Body.Close()
 
 		if err != nil {
@@ -31,6 +27,6 @@ func HashHandler(next http.Handler) http.Handler {
 		w.Header().Set("HashSHA256", calculatedHash)
 
 		r.Body = io.NopCloser(bytes.NewReader(body))
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r)*/
 	})
 }
