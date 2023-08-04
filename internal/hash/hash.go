@@ -2,7 +2,6 @@ package hash
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -11,27 +10,22 @@ import (
 
 func HashHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("hashing")
-		headerHashValue := r.Header.Get("HashSHA256")
-		if headerHashValue == "" {
+		body, err := io.ReadAll(r.Body)
+		defer r.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		headerHash := r.Header.Get("HashSHA256")
+		if headerHash == "" {
 			next.ServeHTTP(w, r)
 			return
 		}
-		body, _ := io.ReadAll(r.Body)
-		fmt.Println(string(body))
-		defer r.Body.Close()
+		receivedHash := fmt.Sprintf("%x", sha256.Sum256(body))
 
-		h := hmac.New(sha256.New, []byte("kek"))
-		h.Write(body)
-		expectedHash := h.Sum(nil)
-
-		expectedHashString := fmt.Sprintf("%x", expectedHash)
-		fmt.Println(expectedHashString)
-		fmt.Println(headerHashValue)
-		if expectedHashString == headerHashValue {
-			fmt.Println("hashing ServeHTTP")
+		if headerHash == receivedHash {
 			r.Body = io.NopCloser(bytes.NewReader(body))
-			fmt.Println(r.Body)
 			next.ServeHTTP(w, r)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
