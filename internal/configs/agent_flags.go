@@ -12,6 +12,7 @@ type AgentParams struct {
 	FlagReportInterval int
 	FlagPollInterval   int
 	FlagKey            string
+	FlagRateLimit      int
 }
 
 type ConfigAgent struct {
@@ -20,6 +21,7 @@ type ConfigAgent struct {
 	ReportInterval int
 	PollInterval   int
 	Key            string
+	RateLimit      int
 }
 
 func InitConfigAgent() ConfigAgent {
@@ -32,6 +34,7 @@ func InitConfigAgent() ConfigAgent {
 		ReportInterval: f.FlagReportInterval,
 		PollInterval:   f.FlagPollInterval,
 		Key:            f.FlagKey,
+		RateLimit:      f.FlagRateLimit,
 	}
 }
 
@@ -40,6 +43,7 @@ func useAgentStartParams(f *AgentParams) {
 	flag.IntVar(&f.FlagReportInterval, "r", 10, "input report interval")
 	flag.IntVar(&f.FlagPollInterval, "p", 2, "input poll interval")
 	flag.StringVar(&f.FlagKey, "k", "kkk", "KEY for calculating SHA-256 hash")
+	flag.IntVar(&f.FlagRateLimit, "l", 3, "rate limit")
 
 	flag.Parse()
 
@@ -54,5 +58,8 @@ func useAgentStartParams(f *AgentParams) {
 	}
 	if envKey := os.Getenv("KEY"); envKey != "" {
 		f.FlagKey = envKey
+	}
+	if envRateLimit := os.Getenv("RATE_LIMIT"); envRateLimit != "" {
+		f.FlagRateLimit, _ = strconv.Atoi(envRateLimit)
 	}
 }
