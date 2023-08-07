@@ -25,7 +25,7 @@ func UseServerStartParams() ServerConfig {
 	flag.IntVar(&c.StoreInterval, "i", 300, "time interval in sec")
 	flag.StringVar(&c.FileName, "f", "/tmp/metrics-db.json", "full file path")
 	flag.BoolVar(&c.Restore, "r", true, "is load previously saved values")
-	flag.StringVar(&c.Key, "k", "kkk", "key")
+	flag.StringVar(&c.Key, "k", "", "key")
 
 	flag.Parse()
 
