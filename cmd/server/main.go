@@ -40,7 +40,7 @@ func main() {
 		db.RestoreFileWithMetrics(cfg.FileName)
 	}
 
-	handler := handlers.NewHandler(router, db, *log)
+	handler := handlers.NewHandler(router, db, *log, cfg.Key)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{

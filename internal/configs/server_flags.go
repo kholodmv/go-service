@@ -13,6 +13,7 @@ type ServerConfig struct {
 	StoreInterval int
 	FileName      string
 	Restore       bool
+	Key           string
 }
 
 func UseServerStartParams() ServerConfig {
@@ -24,6 +25,7 @@ func UseServerStartParams() ServerConfig {
 	flag.IntVar(&c.StoreInterval, "i", 300, "time interval in sec")
 	flag.StringVar(&c.FileName, "f", "/tmp/metrics-db.json", "full file path")
 	flag.BoolVar(&c.Restore, "r", true, "is load previously saved values")
+	flag.StringVar(&c.Key, "k", "", "key")
 
 	flag.Parse()
 
@@ -44,6 +46,9 @@ func UseServerStartParams() ServerConfig {
 	}
 	if envFlagRestore := os.Getenv("RESTORE"); envFlagRestore != "" {
 		fmt.Sscan(envFlagRestore, c.Restore)
+	}
+	if envKey := os.Getenv("KEY"); envKey != "" {
+		c.Key = envKey
 	}
 
 	return c

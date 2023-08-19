@@ -193,6 +193,7 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 
 	strValue := fmt.Sprintf("%v", value)
 
+	res.Header().Set("Content-Type", "application/json")
 	io.WriteString(res, strValue)
 	res.WriteHeader(http.StatusOK)
 }
@@ -247,6 +248,7 @@ func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 }
 
