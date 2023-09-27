@@ -3,14 +3,16 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"github.com/go-chi/chi/v5"
-	"github.com/kholodmv/go-service/cmd/metrics"
-	"github.com/kholodmv/go-service/internal/logger"
-	dataBase "github.com/kholodmv/go-service/internal/store"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/kholodmv/go-service/cmd/metrics"
+	"github.com/kholodmv/go-service/internal/logger"
+	dataBase "github.com/kholodmv/go-service/internal/store"
 )
 
 func BenchmarkUpdateJSONMetric(b *testing.B) {

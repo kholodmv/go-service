@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kholodmv/go-service/cmd/metrics"
-	"github.com/kholodmv/go-service/internal/models"
 	"os"
 	"sync"
+
+	"github.com/kholodmv/go-service/cmd/metrics"
+	"github.com/kholodmv/go-service/internal/models"
 )
 
 type memoryStorage struct {

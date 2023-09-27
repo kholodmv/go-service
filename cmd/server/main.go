@@ -3,13 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"github.com/go-chi/chi/v5"
-	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
-	"github.com/kholodmv/go-service/internal/store"
-	_ "github.com/lib/pq"
-	"go.uber.org/zap"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -17,6 +10,15 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	_ "github.com/lib/pq"
+	"go.uber.org/zap"
+
+	"github.com/kholodmv/go-service/cmd/handlers"
+	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/store"
 )
 
 func main() {

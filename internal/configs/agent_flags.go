@@ -2,9 +2,10 @@ package configs
 
 import (
 	"flag"
-	"github.com/go-resty/resty/v2"
 	"os"
 	"strconv"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type AgentParams struct {

@@ -3,9 +3,11 @@ package store
 import (
 	"context"
 	"database/sql"
+
+	"go.uber.org/zap"
+
 	"github.com/kholodmv/go-service/cmd/metrics"
 	"github.com/kholodmv/go-service/internal/models"
-	"go.uber.org/zap"
 )
 
 type DBStorage struct {

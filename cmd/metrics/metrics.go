@@ -6,16 +6,18 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
-	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
-	"github.com/kholodmv/go-service/internal/models"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/mem"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"time"
+
+	"github.com/go-resty/resty/v2"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
+
+	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/models"
 )
 
 type Metrics struct {

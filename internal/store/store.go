@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+
 	"github.com/kholodmv/go-service/internal/models"
 )
 
