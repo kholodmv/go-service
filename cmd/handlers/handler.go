@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/kholodmv/go-service/internal/gzip"
 	"github.com/kholodmv/go-service/internal/hash"
 	"github.com/kholodmv/go-service/internal/logger"
@@ -41,4 +42,6 @@ func (mh *Handler) RegisterRoutes(router *chi.Mux) {
 	router.Post("/update/", mh.UpdateJSONMetric)
 	router.Get("/ping", mh.DBConnection)
 	router.Post("/updates/", mh.UpdatesMetrics)
+
+	router.Mount("/debug", chimiddleware.Profiler())
 }
