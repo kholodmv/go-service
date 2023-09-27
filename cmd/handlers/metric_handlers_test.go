@@ -59,8 +59,8 @@ func BenchmarkUpdateJSONMetric(b *testing.B) {
 
 				h.UpdateJSONMetric(w, r)
 
-				assert.Equal(b, bm.want.code, w.Result().StatusCode)
 				w.Result().Body.Close()
+				assert.Equal(b, bm.want.code, w.Result().StatusCode)
 			}
 		})
 	}
@@ -112,8 +112,8 @@ func BenchmarkUpdatesMetrics(b *testing.B) {
 
 				h.UpdatesMetrics(w, r)
 
-				assert.Equal(b, bm.want.code, w.Result().StatusCode)
 				w.Result().Body.Close()
+				assert.Equal(b, bm.want.code, w.Result().StatusCode)
 			}
 		})
 	}
@@ -165,8 +165,8 @@ func BenchmarkGetJSONMetric(b *testing.B) {
 
 				h.GetJSONMetric(w, r)
 
-				assert.Equal(b, bm.want.code, w.Result().StatusCode)
 				w.Result().Body.Close()
+				assert.Equal(b, bm.want.code, w.Result().StatusCode)
 			}
 		})
 	}
@@ -215,8 +215,8 @@ func BenchmarkGetAllMetric(b *testing.B) {
 
 				h.GetAllMetric(w, r)
 
-				assert.Equal(b, bm.want.code, w.Result().StatusCode)
 				w.Result().Body.Close()
+				assert.Equal(b, bm.want.code, w.Result().StatusCode)
 			}
 		})
 	}
