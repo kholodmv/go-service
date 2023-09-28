@@ -1,3 +1,4 @@
+// Package store - memStore.go - contains the logic for working with the memory.
 package store
 
 import (
@@ -11,12 +12,14 @@ import (
 	"github.com/kholodmv/go-service/internal/models"
 )
 
+// memoryStorage struct contains a collections of metrics and mutex.
 type memoryStorage struct {
 	mu             sync.Mutex
 	gaugeMetrics   map[string]float64
 	counterMetrics map[string]int64
 }
 
+// NewMemoryStorage function which initialize collections of metrics.
 func NewMemoryStorage() Storage {
 	return &memoryStorage{
 		gaugeMetrics:   make(map[string]float64),
@@ -24,6 +27,7 @@ func NewMemoryStorage() Storage {
 	}
 }
 
+// RestoreFileWithMetrics the function opens a file and saves metrics to it.
 func (m *memoryStorage) RestoreFileWithMetrics(filename string) {
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -48,6 +52,7 @@ func (m *memoryStorage) RestoreFileWithMetrics(filename string) {
 	}
 }
 
+// GetAllMetrics the function tries to get all the metrics contained in the memory.
 func (m *memoryStorage) GetAllMetrics(_ context.Context, size int64) ([]models.Metrics, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -66,11 +71,13 @@ func (m *memoryStorage) GetAllMetrics(_ context.Context, size int64) ([]models.M
 	return allM, nil
 }
 
+// GetCountMetrics the function tries to get count of all metrics contained in the memory.
 func (m *memoryStorage) GetCountMetrics(_ context.Context) (int64, error) {
 	s := len(m.gaugeMetrics) + len(m.counterMetrics)
 	return int64(s), nil
 }
 
+// GetValueMetric the function tries to get value of concrete metric by type and name contained in the memory.
 func (m *memoryStorage) GetValueMetric(_ context.Context, typeM string, name string) (interface{}, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -91,6 +98,7 @@ func (m *memoryStorage) GetValueMetric(_ context.Context, typeM string, name str
 	return value, nil
 }
 
+// GetAllMetricsJSON the function tries to get all the metrics in json format contained in the memory.
 func (m *memoryStorage) GetAllMetricsJSON() []models.Metrics {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -109,6 +117,7 @@ func (m *memoryStorage) GetAllMetricsJSON() []models.Metrics {
 	return allM
 }
 
+// AddMetric the function tries to add value of concrete metric to memory.
 func (m *memoryStorage) AddMetric(_ context.Context, typeM string, value interface{}, name string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -131,6 +140,7 @@ func (m *memoryStorage) AddMetric(_ context.Context, typeM string, value interfa
 	return nil
 }
 
+// WriteAndSaveMetricsToFile the function writes metrics to a file and saves them there.
 func (m *memoryStorage) WriteAndSaveMetricsToFile(filename string) error {
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {

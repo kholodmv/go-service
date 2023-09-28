@@ -1,3 +1,5 @@
+// main the agent module is designed to collect metrics from various sources
+// and transferring them to storage.
 package main
 
 import (

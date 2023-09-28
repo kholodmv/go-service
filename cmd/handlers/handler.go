@@ -1,3 +1,4 @@
+// Package handlers - handler.go - implements HTTP request handlers.
 package handlers
 
 import (
@@ -11,6 +12,7 @@ import (
 	"github.com/kholodmv/go-service/internal/store"
 )
 
+// Handler struct.
 type Handler struct {
 	router chi.Router
 	db     store.Storage
@@ -18,6 +20,7 @@ type Handler struct {
 	key    string
 }
 
+// NewHandler creates a new instance of the handler structure.
 func NewHandler(router chi.Router, db store.Storage, log zap.SugaredLogger, key string) *Handler {
 	h := &Handler{
 		router: router,
@@ -29,6 +32,7 @@ func NewHandler(router chi.Router, db store.Storage, log zap.SugaredLogger, key 
 	return h
 }
 
+// RegisterRoutes registers routes in the application.
 func (mh *Handler) RegisterRoutes(router *chi.Mux) {
 	mh.router.Use(gzip.GzipHandler)
 	mh.router.Use(logger.LoggerHandler)

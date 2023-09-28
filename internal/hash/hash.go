@@ -1,3 +1,4 @@
+// Package hash provides hash functions on byte sequences.
 package hash
 
 import (
@@ -8,6 +9,7 @@ import (
 	"net/http"
 )
 
+// HashHandler hash provides interfaces for hash functions.
 func HashHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)

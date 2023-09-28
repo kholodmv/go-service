@@ -1,3 +1,4 @@
+// Package configs - server_flags.go - server configuration parameters.
 package configs
 
 import (
@@ -6,6 +7,7 @@ import (
 	"os"
 )
 
+// ServerConfig structure that contains variables for initial.
 type ServerConfig struct {
 	DB            string
 	RunAddress    string
@@ -16,6 +18,7 @@ type ServerConfig struct {
 	Key           string
 }
 
+// UseServerStartParams - assigning configuration environment variables.
 func UseServerStartParams() ServerConfig {
 	var c ServerConfig
 

@@ -1,3 +1,4 @@
+// Package configs - agent_flags.go - agent configuration parameters.
 package configs
 
 import (
@@ -8,23 +9,26 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+// AgentParams structure that contains flag variables.
 type AgentParams struct {
-	FlagAddress        string
-	FlagReportInterval int
-	FlagPollInterval   int
-	FlagKey            string
-	FlagRateLimit      int
+	FlagAddress        string // flag HTTP server endpoint address
+	FlagReportInterval int    // flag report interval
+	FlagPollInterval   int    // flag poll interval
+	FlagKey            string // flag key for calculating SHA-256 hash
+	FlagRateLimit      int    // flag rate limit
 }
 
+// ConfigAgent structure that contains variables for initial.
 type ConfigAgent struct {
-	Client         *resty.Client
-	AgentURL       string
-	ReportInterval int
-	PollInterval   int
-	Key            string
-	RateLimit      int
+	Client         *resty.Client // resty client instance
+	AgentURL       string        // HTTP server endpoint address
+	ReportInterval int           // report interval
+	PollInterval   int           // poll interval
+	Key            string        // key for calculating SHA-256 hash
+	RateLimit      int           // rate limit
 }
 
+// InitConfigAgent - agent configuration initialization function.
 func InitConfigAgent() ConfigAgent {
 	f := AgentParams{}
 	useAgentStartParams(&f)
@@ -39,6 +43,7 @@ func InitConfigAgent() ConfigAgent {
 	}
 }
 
+// useAgentStartParams - assigning configuration environment variables.
 func useAgentStartParams(f *AgentParams) {
 	flag.StringVar(&f.FlagAddress, "a", "localhost:8080", "HTTP server endpoint address")
 	flag.IntVar(&f.FlagReportInterval, "r", 10, "input report interval")

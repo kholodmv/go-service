@@ -1,3 +1,4 @@
+// main the server module is entry point to the program.
 package main
 
 import (
@@ -84,6 +85,7 @@ func main() {
 	}
 }
 
+// connectToDB is function which connected to postgres db.
 func connectToDB(path string) *sql.DB {
 	con, err := sql.Open("postgres", path)
 	if err != nil {
