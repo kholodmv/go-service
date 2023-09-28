@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 )
 
-func Example_HandleRequest() {
+func Example() {
 	router := chi.NewRouter()
 	log := logger.Initialize()
 	storage := dataBase.NewMemoryStorage()
