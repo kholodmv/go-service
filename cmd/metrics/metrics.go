@@ -1,3 +1,4 @@
+// Package metrics - metrics.go - agent work with metrics.
 package metrics
 
 import (
@@ -6,25 +7,32 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
-	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
-	"github.com/kholodmv/go-service/internal/models"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/mem"
 	"math/rand"
 	"net/http"
 	"runtime"
 	"time"
+
+	"github.com/go-resty/resty/v2"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
+
+	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/models"
 )
 
+// Metrics struct includes a collection of metrics and
+// a cumulative value for the PollCount metric with count type.
 type Metrics struct {
 	data      []models.Metrics
 	pollCount int64
 }
 
+// log - initializing the logging variable.
 var log = logger.Initialize()
 
+// Compress - compress data.
+// If successful, the compressed data is returned, else - error.
 func Compress(data []byte) ([]byte, error) {
 	var b bytes.Buffer
 	w, err := gzip.NewWriterLevel(&b, gzip.BestCompression)
@@ -42,6 +50,7 @@ func Compress(data []byte) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+// ReportAgent function that triggers the collection and sending of metrics.
 func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
 	metricCh := make(chan models.Metrics)
 	timeR := 0
@@ -57,6 +66,7 @@ func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
 	}
 }
 
+// CollectMetrics function collecting metrics of different types.
 func (m *Metrics) CollectMetrics(ch chan<- models.Metrics) {
 	memStats := new(runtime.MemStats)
 	runtime.ReadMemStats(memStats)
@@ -139,6 +149,7 @@ func (m *Metrics) CollectMetrics(ch chan<- models.Metrics) {
 	m.pollCount += 1
 }
 
+// SendMetrics function sending metrics by URL.
 func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string, metricCh <-chan models.Metrics, rateLimit int) error {
 	for metric := range metricCh {
 		url := agentURL

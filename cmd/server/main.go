@@ -1,21 +1,25 @@
+// main the server module is entry point to the program.
 package main
 
 import (
 	"context"
 	"database/sql"
-	"github.com/go-chi/chi/v5"
-	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
-	"github.com/kholodmv/go-service/internal/store"
-	_ "github.com/lib/pq"
-	"go.uber.org/zap"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	_ "github.com/lib/pq"
+	"go.uber.org/zap"
+
+	"github.com/kholodmv/go-service/cmd/handlers"
+	"github.com/kholodmv/go-service/internal/configs"
+	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/store"
 )
 
 func main() {
@@ -81,6 +85,7 @@ func main() {
 	}
 }
 
+// connectToDB is function which connected to postgres db.
 func connectToDB(path string) *sql.DB {
 	con, err := sql.Open("postgres", path)
 	if err != nil {

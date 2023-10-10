@@ -1,3 +1,4 @@
+// Package handlers - metric_handlers.go - handlers implementation.
 package handlers
 
 import (
@@ -5,21 +6,26 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/kholodmv/go-service/cmd/metrics"
-	"github.com/kholodmv/go-service/internal/models"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
+
+	"github.com/kholodmv/go-service/cmd/metrics"
+	"github.com/kholodmv/go-service/internal/models"
 )
 
+// PathParam - structure storing path parameters.
 type PathParam struct {
 	typeP string
 	value string
 	name  string
 }
 
+// DBConnection - checks the connection to the database.
+// If successful returns 200, else - 500.
 func (mh *Handler) DBConnection(res http.ResponseWriter, _ *http.Request) {
 	err := mh.db.Ping()
 	if err != nil {
@@ -30,6 +36,10 @@ func (mh *Handler) DBConnection(res http.ResponseWriter, _ *http.Request) {
 	res.Write([]byte("OK"))
 }
 
+// UpdateJSONMetric - updates metrics received in JSON format in the database.
+// If the request is incorrect or the metric type is incorrect, it returns 400.
+// If there is another error, it returns 500.
+// If successful returns 200.
 func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 
@@ -77,6 +87,10 @@ func (mh *Handler) UpdateJSONMetric(res http.ResponseWriter, req *http.Request) 
 	res.Write(resp)
 }
 
+// UpdatesMetrics - updates metrics in the database.
+// If the request is incorrect or the metric type is incorrect or value type is incorrect, it returns 400.
+// If there is another error, it returns 500.
+// If successful returns 200.
 func (mh *Handler) UpdatesMetrics(res http.ResponseWriter, req *http.Request) {
 	var m []models.Metrics
 	var buf bytes.Buffer
@@ -118,6 +132,11 @@ func (mh *Handler) UpdatesMetrics(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
+// GetJSONMetric - gets all metrics in json format from the database.
+// If the request is incorrect or the metric type is incorrect, it returns 400.
+// If there is another error, it returns 500.
+// If not found metric returns 400.
+// If successful returns 200.
 func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 	var m models.Metrics
 	var buf bytes.Buffer
@@ -166,6 +185,9 @@ func (mh *Handler) GetJSONMetric(res http.ResponseWriter, req *http.Request) {
 	res.Write(resp)
 }
 
+// GetValueMetric - gets a specific metric by type and name from the database.
+// If not found metric returns 400.
+// If successful returns 200.
 func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/plain")
 
@@ -198,6 +220,8 @@ func (mh *Handler) GetValueMetric(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
+// GetAllMetric - gets all metrics from the database.
+// If successful returns 200.
 func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 
@@ -222,6 +246,10 @@ func (mh *Handler) GetAllMetric(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
+// UpdateMetric - updates a specific metric by type and name.
+// If not found metric returns 400.
+// If the metric type is incorrect or value type is incorrect, it returns 400.
+// If successful returns 200.
 func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/plain")
 
@@ -252,6 +280,7 @@ func (mh *Handler) UpdateMetric(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
+// isValidParams - checks the validity of the parameters received in the request.
 func isValidParams(req *http.Request) (PathParam, bool) {
 	parts := strings.Split(req.URL.Path, "/")
 	if len(parts) != 5 {
@@ -261,6 +290,7 @@ func isValidParams(req *http.Request) (PathParam, bool) {
 	return p, true
 }
 
+// checkType - checks the validity of the metric type.
 func checkType(metricType string) bool {
 	if metricType != metrics.Gauge &&
 		metricType != metrics.Counter {
@@ -269,6 +299,7 @@ func checkType(metricType string) bool {
 	return true
 }
 
+// checkAndSaveMetric - based on the type, adds a metric to the database.
 func checkAndSaveMetric(metricType string, name string, value string, mh *Handler, ctx context.Context) bool {
 	switch metricType {
 	case metrics.Gauge:
@@ -288,6 +319,7 @@ func checkAndSaveMetric(metricType string, name string, value string, mh *Handle
 	return true
 }
 
+// checkName - checks the validity of the metric name (no empty).
 func checkName(metricName string) bool {
 	return metricName != ""
 }

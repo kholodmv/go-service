@@ -2,18 +2,20 @@ package main
 
 import (
 	"context"
-	"github.com/go-chi/chi/v5"
-	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/cmd/metrics"
-	"github.com/kholodmv/go-service/internal/logger"
-	dataBase "github.com/kholodmv/go-service/internal/store"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/kholodmv/go-service/cmd/handlers"
+	"github.com/kholodmv/go-service/cmd/metrics"
+	"github.com/kholodmv/go-service/internal/logger"
+	dataBase "github.com/kholodmv/go-service/internal/store"
 )
 
 func TestGetAllMetric(t *testing.T) {
