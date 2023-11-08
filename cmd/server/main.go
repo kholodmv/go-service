@@ -26,6 +26,13 @@ func main() {
 	cfg := configs.UseServerStartParams()
 	log := logger.Initialize()
 
+	var (
+		buildVersion, buildDate, buildCommit string = "N/A", "N/A", "N/A"
+	)
+	log.Infof("\nBuild version: %v", buildVersion)
+	log.Infof("\nBuild date: %v", buildDate)
+	log.Infof("\nBuild commit: %v", buildCommit)
+
 	var db store.Storage
 
 	if cfg.DB != "" {
