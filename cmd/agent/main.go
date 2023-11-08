@@ -8,10 +8,11 @@ import (
 	"github.com/kholodmv/go-service/internal/logger"
 )
 
+var (
+	buildVersion, buildDate, buildCommit string = "N/A", "N/A", "N/A"
+)
+
 func main() {
-	var (
-		buildVersion, buildDate, buildCommit string = "N/A", "N/A", "N/A"
-	)
 	log := logger.Initialize()
 	log.Infof("\nBuild version: %v", buildVersion)
 	log.Infof("\nBuild date: %v", buildDate)
