@@ -3,9 +3,11 @@
 package main
 
 import (
+	"crypto/rsa"
 	"github.com/kholodmv/go-service/cmd/metrics"
 	"github.com/kholodmv/go-service/internal/configs"
 	"github.com/kholodmv/go-service/internal/logger"
+	"go.uber.org/zap"
 )
 
 var (
@@ -20,6 +22,16 @@ func main() {
 
 	conf := configs.InitConfigAgent()
 
+	var publicKey *rsa.PublicKey
+	var err error
+	if conf.CryptoPublicKey != "" {
+		publicKey, err = conf.GetPublicKey()
+		if err != nil {
+			log.Error("failed to get public encryption key", zap.Error(err))
+			return
+		}
+	}
+
 	m := metrics.Metrics{}
-	m.ReportAgent(conf)
+	m.ReportAgent(conf, publicKey)
 }

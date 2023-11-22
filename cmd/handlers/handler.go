@@ -2,8 +2,10 @@
 package handlers
 
 import (
+	"crypto/rsa"
 	"github.com/go-chi/chi/v5"
 	mw "github.com/go-chi/chi/v5/middleware"
+	"github.com/kholodmv/go-service/internal/decrypt"
 	"go.uber.org/zap"
 
 	"github.com/kholodmv/go-service/internal/gzip"
@@ -14,19 +16,21 @@ import (
 
 // Handler struct.
 type Handler struct {
-	router chi.Router
-	db     store.Storage
-	log    zap.SugaredLogger
-	key    string
+	router           chi.Router
+	db               store.Storage
+	log              zap.SugaredLogger
+	key              string
+	cryptoPrivateKey *rsa.PrivateKey
 }
 
 // NewHandler creates a new instance of the handler structure.
-func NewHandler(router chi.Router, db store.Storage, log zap.SugaredLogger, key string) *Handler {
+func NewHandler(router chi.Router, db store.Storage, log zap.SugaredLogger, key string, cryptoPrivateKey *rsa.PrivateKey) *Handler {
 	h := &Handler{
-		router: router,
-		db:     db,
-		log:    log,
-		key:    key,
+		router:           router,
+		db:               db,
+		log:              log,
+		key:              key,
+		cryptoPrivateKey: cryptoPrivateKey,
 	}
 
 	return h
@@ -38,6 +42,10 @@ func (mh *Handler) RegisterRoutes(router *chi.Mux) {
 	mh.router.Use(logger.LoggerHandler)
 	if mh.key != "" {
 		mh.router.Use(hash.HashHandler)
+	}
+
+	if mh.cryptoPrivateKey != nil {
+		mh.router.Use(decrypt.WithRsaDecrypt(mh.cryptoPrivateKey))
 	}
 
 	router.Post("/update/{type}/{name}/{value}", mh.UpdateMetric)

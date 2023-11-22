@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"crypto/rsa"
 	"database/sql"
 	"log"
 	"net/http"
@@ -41,7 +42,6 @@ func main() {
 		s := store.NewStorage(con, log)
 		store.CreateTable(s)
 		db = s
-
 	} else {
 		db = store.NewMemoryStorage()
 	}
@@ -52,7 +52,19 @@ func main() {
 		db.RestoreFileWithMetrics(cfg.FileName)
 	}
 
-	handler := handlers.NewHandler(router, db, *log, cfg.Key)
+	var privateKey *rsa.PrivateKey
+	var err error
+	if cfg.CryptoPrivateKey != "" {
+		privateKey, err = cfg.GetPrivateKey()
+		if err != nil {
+			log.Error("failed to get private encryption key", zap.Error(err))
+			return
+		}
+	} else {
+		privateKey = nil
+	}
+
+	handler := handlers.NewHandler(router, db, *log, cfg.Key, privateKey)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{

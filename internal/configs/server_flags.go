@@ -9,13 +9,14 @@ import (
 
 // ServerConfig structure that contains variables for initial.
 type ServerConfig struct {
-	DB            string
-	RunAddress    string
-	LogLevel      string
-	StoreInterval int
-	FileName      string
-	Restore       bool
-	Key           string
+	DB               string
+	RunAddress       string
+	LogLevel         string
+	StoreInterval    int
+	FileName         string
+	Restore          bool
+	Key              string
+	CryptoPrivateKey string
 }
 
 // UseServerStartParams - assigning configuration environment variables.
@@ -29,7 +30,7 @@ func UseServerStartParams() ServerConfig {
 	flag.StringVar(&c.FileName, "f", "/tmp/metrics-db.json", "full file path")
 	flag.BoolVar(&c.Restore, "r", true, "is load previously saved values")
 	flag.StringVar(&c.Key, "k", "", "key")
-
+	flag.StringVar(&c.CryptoPrivateKey, "crypto-key", "", "path to RSA private key file in PEM format")
 	flag.Parse()
 
 	if envRunDB := os.Getenv("DATABASE_DSN"); envRunDB != "" {
@@ -52,6 +53,9 @@ func UseServerStartParams() ServerConfig {
 	}
 	if envKey := os.Getenv("KEY"); envKey != "" {
 		c.Key = envKey
+	}
+	if envCryptoKey := os.Getenv("CRYPTO_KEY"); envCryptoKey != "" {
+		c.CryptoPrivateKey = envCryptoKey
 	}
 
 	return c
