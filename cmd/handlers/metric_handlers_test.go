@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"crypto/rsa"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,7 +22,8 @@ func BenchmarkUpdateJSONMetric(b *testing.B) {
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "metric2")
 	router := chi.NewRouter()
 	log := logger.Initialize()
-	h := NewHandler(router, storage, *log, "")
+	var key *rsa.PrivateKey
+	h := NewHandler(router, storage, *log, "", key)
 
 	type want struct {
 		code int
@@ -75,7 +77,8 @@ func BenchmarkUpdatesMetrics(b *testing.B) {
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "metric4")
 	router := chi.NewRouter()
 	log := logger.Initialize()
-	h := NewHandler(router, storage, *log, "")
+	var key *rsa.PrivateKey
+	h := NewHandler(router, storage, *log, "", key)
 
 	type want struct {
 		code int
@@ -129,7 +132,8 @@ func BenchmarkGetJSONMetric(b *testing.B) {
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "metric4")
 	router := chi.NewRouter()
 	log := logger.Initialize()
-	h := NewHandler(router, storage, *log, "")
+	var key *rsa.PrivateKey
+	h := NewHandler(router, storage, *log, "", key)
 
 	type want struct {
 		code int
@@ -183,7 +187,8 @@ func BenchmarkGetAllMetric(b *testing.B) {
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "metric4")
 	router := chi.NewRouter()
 	log := logger.Initialize()
-	h := NewHandler(router, storage, *log, "")
+	var key *rsa.PrivateKey
+	h := NewHandler(router, storage, *log, "", key)
 
 	type want struct {
 		code int
