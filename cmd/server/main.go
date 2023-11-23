@@ -87,7 +87,7 @@ func main() {
 
 	connectionsClosed := make(chan struct{})
 	go func() {
-		stop := make(chan os.Signal, 1)
+		stop := make(chan os.Signal, 2)
 		signal.Notify(stop,
 			syscall.SIGHUP,
 			syscall.SIGINT,

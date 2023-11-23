@@ -4,6 +4,7 @@ package metrics
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	cr "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -53,7 +54,7 @@ func Compress(data []byte) ([]byte, error) {
 }
 
 // ReportAgent function that triggers the collection and sending of metrics.
-func (m *Metrics) ReportAgent(c configs.ConfigAgent, pk *rsa.PublicKey) {
+func (m *Metrics) ReportAgent(ctx context.Context, connectionsClosed chan struct{}, c configs.ConfigAgent, pk *rsa.PublicKey) {
 	metricCh := make(chan models.Metrics)
 	timeR := 0
 	for {

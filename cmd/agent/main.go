@@ -3,11 +3,15 @@
 package main
 
 import (
+	"context"
 	"crypto/rsa"
 	"github.com/kholodmv/go-service/cmd/metrics"
 	"github.com/kholodmv/go-service/internal/configs"
 	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"go.uber.org/zap"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 var (
@@ -16,6 +20,7 @@ var (
 
 func main() {
 	log := logger.Initialize()
+	defer log.Sync()
 	log.Infof("\nBuild version: %v", buildVersion)
 	log.Infof("\nBuild date: %v", buildDate)
 	log.Infof("\nBuild commit: %v", buildCommit)
@@ -38,6 +43,18 @@ func main() {
 		}
 	}
 
+	stop := make(chan os.Signal, 2)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	ctx, stopMonitor := context.WithCancel(context.Background())
+	connectionsClosed := make(chan struct{})
+
 	m := metrics.Metrics{}
-	m.ReportAgent(conf, publicKey)
+	m.ReportAgent(ctx, connectionsClosed, conf, publicKey)
+
+	log.Info("signal received, shutting down", zap.Any("signal", <-stop))
+	stopMonitor()
+	<-connectionsClosed
+
+	log.Info("Shutting down agent")
 }
