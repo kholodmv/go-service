@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -19,7 +20,6 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 
 	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/kholodmv/go-service/internal/models"
 )
 

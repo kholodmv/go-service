@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"database/sql"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -19,7 +20,6 @@ import (
 
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/kholodmv/go-service/internal/store"
 )
 

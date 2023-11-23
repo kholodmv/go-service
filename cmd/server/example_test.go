@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	dataBase "github.com/kholodmv/go-service/internal/store"
 	"net/http"
 	"net/http/httptest"

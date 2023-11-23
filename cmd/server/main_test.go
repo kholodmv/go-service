@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rsa"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/metrics"
-	"github.com/kholodmv/go-service/internal/logger"
 	dataBase "github.com/kholodmv/go-service/internal/store"
 )
 

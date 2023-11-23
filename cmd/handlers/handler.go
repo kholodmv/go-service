@@ -5,12 +5,12 @@ import (
 	"crypto/rsa"
 	"github.com/go-chi/chi/v5"
 	mw "github.com/go-chi/chi/v5/middleware"
-	"github.com/kholodmv/go-service/internal/decrypt"
+	"github.com/kholodmv/go-service/internal/middleware/decrypt"
+	"github.com/kholodmv/go-service/internal/middleware/gzip"
+	"github.com/kholodmv/go-service/internal/middleware/hash"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"go.uber.org/zap"
 
-	"github.com/kholodmv/go-service/internal/gzip"
-	"github.com/kholodmv/go-service/internal/hash"
-	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/kholodmv/go-service/internal/store"
 )
 

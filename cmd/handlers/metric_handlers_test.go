@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rsa"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kholodmv/go-service/cmd/metrics"
-	"github.com/kholodmv/go-service/internal/logger"
 	dataBase "github.com/kholodmv/go-service/internal/store"
 )
 

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/rsa"
-	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
