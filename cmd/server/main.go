@@ -64,6 +64,12 @@ func main() {
 		privateKey = nil
 	}
 
+	if cfg.ConfigFile != "" {
+		if err = cfg.ParseFile(cfg.ConfigFile); err != nil {
+			log.Error("failed to parse file", zap.Error(err))
+		}
+	}
+
 	handler := handlers.NewHandler(router, db, *log, cfg.Key, privateKey)
 	handler.RegisterRoutes(router)
 

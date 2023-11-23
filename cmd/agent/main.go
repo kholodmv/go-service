@@ -32,6 +32,12 @@ func main() {
 		}
 	}
 
+	if conf.ConfigFile != "" {
+		if err = conf.ParseFile(conf.ConfigFile); err != nil {
+			log.Error("failed to parse file", zap.Error(err))
+		}
+	}
+
 	m := metrics.Metrics{}
 	m.ReportAgent(conf, publicKey)
 }

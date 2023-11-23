@@ -17,6 +17,7 @@ type AgentParams struct {
 	FlagKey             string // flag key for calculating SHA-256 hash
 	FlagRateLimit       int    // flag rate limit
 	FlagCryptoPublicKey string // flag crypto key
+	FlagConfigFile      string // flag config file
 }
 
 // ConfigAgent structure that contains variables for initial.
@@ -28,6 +29,7 @@ type ConfigAgent struct {
 	Key             string        // key for calculating SHA-256 hash
 	RateLimit       int           // rate limit
 	CryptoPublicKey string        // crypto key
+	ConfigFile      string        // config file
 }
 
 // InitConfigAgent - agent configuration initialization function.
@@ -43,6 +45,7 @@ func InitConfigAgent() ConfigAgent {
 		Key:             f.FlagKey,
 		RateLimit:       f.FlagRateLimit,
 		CryptoPublicKey: f.FlagCryptoPublicKey,
+		ConfigFile:      f.FlagConfigFile,
 	}
 }
 
@@ -54,6 +57,7 @@ func useAgentStartParams(f *AgentParams) {
 	flag.StringVar(&f.FlagKey, "k", "", "KEY for calculating SHA-256 hash")
 	flag.IntVar(&f.FlagRateLimit, "l", 3, "rate limit")
 	flag.StringVar(&f.FlagCryptoPublicKey, "crypto-key", "", "path to RSA public key file in PEM format")
+	flag.StringVar(&f.FlagConfigFile, "c", "", "path to configuration file")
 	flag.Parse()
 
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
@@ -73,5 +77,8 @@ func useAgentStartParams(f *AgentParams) {
 	}
 	if envCryptoKey := os.Getenv("CRYPTO_KEY"); envCryptoKey != "" {
 		f.FlagCryptoPublicKey = envCryptoKey
+	}
+	if envConfigFile := os.Getenv("CONFIG"); envConfigFile != "" {
+		f.FlagConfigFile = envConfigFile
 	}
 }

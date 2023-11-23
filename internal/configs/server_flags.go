@@ -17,6 +17,7 @@ type ServerConfig struct {
 	Restore          bool
 	Key              string
 	CryptoPrivateKey string
+	ConfigFile       string
 }
 
 // UseServerStartParams - assigning configuration environment variables.
@@ -31,6 +32,7 @@ func UseServerStartParams() ServerConfig {
 	flag.BoolVar(&c.Restore, "r", true, "is load previously saved values")
 	flag.StringVar(&c.Key, "k", "", "key")
 	flag.StringVar(&c.CryptoPrivateKey, "crypto-key", "", "path to RSA private key file in PEM format")
+	flag.StringVar(&c.ConfigFile, "c", "", "path to configuration file")
 	flag.Parse()
 
 	if envRunDB := os.Getenv("DATABASE_DSN"); envRunDB != "" {
@@ -56,6 +58,9 @@ func UseServerStartParams() ServerConfig {
 	}
 	if envCryptoKey := os.Getenv("CRYPTO_KEY"); envCryptoKey != "" {
 		c.CryptoPrivateKey = envCryptoKey
+	}
+	if envConfigFile := os.Getenv("CONFIG"); envConfigFile != "" {
+		c.ConfigFile = envConfigFile
 	}
 
 	return c
