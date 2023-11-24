@@ -27,10 +27,7 @@ func (c *decryptReader) Read(p []byte) (n int, err error) {
 }
 
 func (c *decryptReader) Close() error {
-	if err := c.r.Close(); err != nil {
-		return err
-	}
-	return nil
+	return c.r.Close()
 }
 
 func WithRsaDecrypt(key *rsa.PrivateKey) func(next http.Handler) http.Handler {
