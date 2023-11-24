@@ -3,7 +3,9 @@ package main
 
 import (
 	"context"
+	"crypto/rsa"
 	"database/sql"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -18,7 +20,6 @@ import (
 
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/kholodmv/go-service/internal/store"
 )
 
@@ -41,7 +42,6 @@ func main() {
 		s := store.NewStorage(con, log)
 		store.CreateTable(s)
 		db = s
-
 	} else {
 		db = store.NewMemoryStorage()
 	}
@@ -52,7 +52,25 @@ func main() {
 		db.RestoreFileWithMetrics(cfg.FileName)
 	}
 
-	handler := handlers.NewHandler(router, db, *log, cfg.Key)
+	var privateKey *rsa.PrivateKey
+	var err error
+	if cfg.CryptoPrivateKey != "" {
+		privateKey, err = cfg.GetPrivateKey()
+		if err != nil {
+			log.Error("failed to get private encryption key", zap.Error(err))
+			return
+		}
+	} else {
+		privateKey = nil
+	}
+
+	if cfg.ConfigFile != "" {
+		if err = cfg.ParseFile(cfg.ConfigFile); err != nil {
+			log.Error("failed to parse file", zap.Error(err))
+		}
+	}
+
+	handler := handlers.NewHandler(router, db, *log, cfg.Key, privateKey)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{
@@ -69,7 +87,7 @@ func main() {
 
 	connectionsClosed := make(chan struct{})
 	go func() {
-		stop := make(chan os.Signal, 1)
+		stop := make(chan os.Signal, 2)
 		signal.Notify(stop,
 			syscall.SIGHUP,
 			syscall.SIGINT,

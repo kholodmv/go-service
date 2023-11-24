@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
+	"crypto/rsa"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/kholodmv/go-service/cmd/handlers"
-	"github.com/kholodmv/go-service/internal/logger"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	dataBase "github.com/kholodmv/go-service/internal/store"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +16,8 @@ func Example() {
 	router := chi.NewRouter()
 	log := logger.Initialize()
 	storage := dataBase.NewMemoryStorage()
-	h := handlers.NewHandler(router, storage, *log, "")
+	var key *rsa.PrivateKey
+	h := handlers.NewHandler(router, storage, *log, "", key)
 	w := httptest.NewRecorder()
 
 	b := []byte(`{"type": "gauge", "value": 10, "id": "metric2"}`)

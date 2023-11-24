@@ -4,9 +4,13 @@ package metrics
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
+	cr "crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -17,7 +21,6 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 
 	"github.com/kholodmv/go-service/internal/configs"
-	"github.com/kholodmv/go-service/internal/logger"
 	"github.com/kholodmv/go-service/internal/models"
 )
 
@@ -51,13 +54,13 @@ func Compress(data []byte) ([]byte, error) {
 }
 
 // ReportAgent function that triggers the collection and sending of metrics.
-func (m *Metrics) ReportAgent(c configs.ConfigAgent) {
+func (m *Metrics) ReportAgent(ctx context.Context, connectionsClosed chan struct{}, c configs.ConfigAgent, pk *rsa.PublicKey) {
 	metricCh := make(chan models.Metrics)
 	timeR := 0
 	for {
 		if timeR >= c.ReportInterval {
 			timeR = 0
-			go m.SendMetrics(c.Client, c.AgentURL, c.Key, metricCh, c.RateLimit)
+			go m.SendMetrics(c.Client, c.AgentURL, c.Key, metricCh, c.RateLimit, pk)
 		}
 		go m.CollectMetrics(metricCh)
 
@@ -150,7 +153,7 @@ func (m *Metrics) CollectMetrics(ch chan<- models.Metrics) {
 }
 
 // SendMetrics function sending metrics by URL.
-func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string, metricCh <-chan models.Metrics, rateLimit int) error {
+func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string, metricCh <-chan models.Metrics, rateLimit int, pk *rsa.PublicKey) error {
 	for metric := range metricCh {
 		url := agentURL
 
@@ -164,10 +167,22 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 			fmt.Printf("Error compress JSON: %s\n", err)
 		}
 
+		encryptedBytes, err := rsa.EncryptOAEP(
+			sha256.New(),
+			cr.Reader,
+			pk,
+			metricsJSON,
+			nil)
+
+		if err != nil {
+			return err
+		}
+		reader := bytes.NewReader(encryptedBytes)
+
 		var resp *resty.Response
 		if key != "" {
 			resp, err = client.R().
-				SetBody(metricsJSON).
+				SetBody(reader).
 				SetHeader("Content-Type", "application/json").
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").
@@ -175,7 +190,7 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 				Post(url)
 		} else {
 			resp, err = client.R().
-				SetBody(metricsJSON).
+				SetBody(reader).
 				SetHeader("Content-Type", "application/json").
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").

@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rsa"
+	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +16,6 @@ import (
 
 	"github.com/kholodmv/go-service/cmd/handlers"
 	"github.com/kholodmv/go-service/cmd/metrics"
-	"github.com/kholodmv/go-service/internal/logger"
 	dataBase "github.com/kholodmv/go-service/internal/store"
 )
 
@@ -50,7 +51,8 @@ func TestGetAllMetric(t *testing.T) {
 	storage := dataBase.NewMemoryStorage()
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "test_gauge_metric")
 	storage.AddMetric(context.TODO(), metrics.Counter, int64(5), "test_counter_metric")
-	getAllHandler := handlers.NewHandler(router, storage, *log, "")
+	var key *rsa.PrivateKey
+	getAllHandler := handlers.NewHandler(router, storage, *log, "", key)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -100,7 +102,8 @@ func TestGetValueMetric(t *testing.T) {
 	storage := dataBase.NewMemoryStorage()
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "nameGaugeMetric")
 	storage.AddMetric(context.TODO(), metrics.Counter, int64(5), "nameCounterMetric")
-	getValueHandler := handlers.NewHandler(router, storage, *log, "")
+	var key *rsa.PrivateKey
+	getValueHandler := handlers.NewHandler(router, storage, *log, "", key)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
