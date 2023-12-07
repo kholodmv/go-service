@@ -70,7 +70,7 @@ func main() {
 		}
 	}
 
-	handler := handlers.NewHandler(router, db, *log, cfg.Key, privateKey)
+	handler := handlers.NewHandler(router, db, *log, cfg.Key, cfg.TrustedSubnet, privateKey)
 	handler.RegisterRoutes(router)
 
 	server := http.Server{

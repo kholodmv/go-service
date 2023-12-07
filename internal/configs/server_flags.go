@@ -18,6 +18,7 @@ type ServerConfig struct {
 	Key              string
 	CryptoPrivateKey string
 	ConfigFile       string
+	TrustedSubnet    string
 }
 
 // UseServerStartParams - assigning configuration environment variables.
@@ -33,6 +34,8 @@ func UseServerStartParams() ServerConfig {
 	flag.StringVar(&c.Key, "k", "", "key")
 	flag.StringVar(&c.CryptoPrivateKey, "crypto-key", "", "path to RSA private key file in PEM format")
 	flag.StringVar(&c.ConfigFile, "c", "", "path to configuration file")
+	flag.StringVar(&c.TrustedSubnet, "t", "", "trusted subnet")
+
 	flag.Parse()
 
 	if envRunDB := os.Getenv("DATABASE_DSN"); envRunDB != "" {
@@ -61,6 +64,9 @@ func UseServerStartParams() ServerConfig {
 	}
 	if envConfigFile := os.Getenv("CONFIG"); envConfigFile != "" {
 		c.ConfigFile = envConfigFile
+	}
+	if envTrustedSubnet := os.Getenv("TRUSTED_SUBNET"); envTrustedSubnet != "" {
+		c.TrustedSubnet = envTrustedSubnet
 	}
 
 	return c

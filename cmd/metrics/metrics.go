@@ -9,9 +9,11 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/kholodmv/go-service/internal/middleware/logger"
 	"math/rand"
+	"net"
 	"net/http"
 	"runtime"
 	"time"
@@ -179,6 +181,11 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 		}
 		reader := bytes.NewReader(encryptedBytes)
 
+		ip, err := GetLocalIP()
+		if err != nil {
+			return err
+		}
+
 		var resp *resty.Response
 		if key != "" {
 			resp, err = client.R().
@@ -187,6 +194,7 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").
 				SetHeader("HashSHA256", hashSHA256).
+				SetHeader("X-Real-IP", ip).
 				Post(url)
 		} else {
 			resp, err = client.R().
@@ -194,6 +202,7 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 				SetHeader("Content-Type", "application/json").
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").
+				SetHeader("X-Real-IP", ip).
 				Post(url)
 		}
 
@@ -216,4 +225,24 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 	}
 
 	return nil
+}
+
+func GetLocalIP() (string, error) {
+	ips, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+
+	for i := range ips {
+		if ips[i].String() != "127.0.0.1/8" {
+			ip, _, err := net.ParseCIDR(ips[i].String())
+			if err != nil {
+				return "", err
+			}
+
+			return ip.String(), nil
+		}
+	}
+
+	return "", errors.New("no IP available")
 }
