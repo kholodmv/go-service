@@ -17,7 +17,7 @@ func Example() {
 	log := logger.Initialize()
 	storage := dataBase.NewMemoryStorage()
 	var key *rsa.PrivateKey
-	h := handlers.NewHandler(router, storage, *log, "", key)
+	h := handlers.NewHandler(router, storage, *log, "", "", key)
 	w := httptest.NewRecorder()
 
 	b := []byte(`{"type": "gauge", "value": 10, "id": "metric2"}`)

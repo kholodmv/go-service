@@ -23,7 +23,7 @@ func BenchmarkUpdateJSONMetric(b *testing.B) {
 	router := chi.NewRouter()
 	log := logger.Initialize()
 	var key *rsa.PrivateKey
-	h := NewHandler(router, storage, *log, "", key)
+	h := NewHandler(router, storage, *log, "", "", key)
 
 	type want struct {
 		code int
@@ -78,7 +78,7 @@ func BenchmarkUpdatesMetrics(b *testing.B) {
 	router := chi.NewRouter()
 	log := logger.Initialize()
 	var key *rsa.PrivateKey
-	h := NewHandler(router, storage, *log, "", key)
+	h := NewHandler(router, storage, *log, "", "", key)
 
 	type want struct {
 		code int
@@ -133,7 +133,7 @@ func BenchmarkGetJSONMetric(b *testing.B) {
 	router := chi.NewRouter()
 	log := logger.Initialize()
 	var key *rsa.PrivateKey
-	h := NewHandler(router, storage, *log, "", key)
+	h := NewHandler(router, storage, *log, "", "", key)
 
 	type want struct {
 		code int
@@ -188,7 +188,7 @@ func BenchmarkGetAllMetric(b *testing.B) {
 	router := chi.NewRouter()
 	log := logger.Initialize()
 	var key *rsa.PrivateKey
-	h := NewHandler(router, storage, *log, "", key)
+	h := NewHandler(router, storage, *log, "", "", key)
 
 	type want struct {
 		code int
