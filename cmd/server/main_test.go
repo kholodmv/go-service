@@ -52,7 +52,7 @@ func TestGetAllMetric(t *testing.T) {
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "test_gauge_metric")
 	storage.AddMetric(context.TODO(), metrics.Counter, int64(5), "test_counter_metric")
 	var key *rsa.PrivateKey
-	getAllHandler := handlers.NewHandler(router, storage, *log, "", key)
+	getAllHandler := handlers.NewHandler(router, storage, *log, "", "", key)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -103,7 +103,7 @@ func TestGetValueMetric(t *testing.T) {
 	storage.AddMetric(context.TODO(), metrics.Gauge, 56.4, "nameGaugeMetric")
 	storage.AddMetric(context.TODO(), metrics.Counter, int64(5), "nameCounterMetric")
 	var key *rsa.PrivateKey
-	getValueHandler := handlers.NewHandler(router, storage, *log, "", key)
+	getValueHandler := handlers.NewHandler(router, storage, *log, "", "", key)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
