@@ -18,6 +18,8 @@ type AgentParams struct {
 	FlagRateLimit       int    // flag rate limit
 	FlagCryptoPublicKey string // flag crypto key
 	FlagConfigFile      string // flag config file
+	FlagGRPCAddress     string
+	FlagCACertFile      string
 }
 
 // ConfigAgent structure that contains variables for initial.
@@ -30,6 +32,8 @@ type ConfigAgent struct {
 	RateLimit       int           // rate limit
 	CryptoPublicKey string        // crypto key
 	ConfigFile      string        // config file
+	GRPCAddress     string
+	CACertFile      string
 }
 
 // InitConfigAgent - agent configuration initialization function.
@@ -46,6 +50,8 @@ func InitConfigAgent() ConfigAgent {
 		RateLimit:       f.FlagRateLimit,
 		CryptoPublicKey: f.FlagCryptoPublicKey,
 		ConfigFile:      f.FlagConfigFile,
+		GRPCAddress:     f.FlagCryptoPublicKey,
+		CACertFile:      f.FlagConfigFile,
 	}
 }
 
@@ -58,6 +64,8 @@ func useAgentStartParams(f *AgentParams) {
 	flag.IntVar(&f.FlagRateLimit, "l", 3, "rate limit")
 	flag.StringVar(&f.FlagCryptoPublicKey, "crypto-key", "", "path to RSA public key file in PEM format")
 	flag.StringVar(&f.FlagConfigFile, "c", "", "path to configuration file")
+	flag.StringVar(&f.FlagGRPCAddress, "g", "localhost:8081", "destination server address")
+	flag.StringVar(&f.FlagCACertFile, "ca", "", "ca cert file")
 	flag.Parse()
 
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
@@ -80,5 +88,11 @@ func useAgentStartParams(f *AgentParams) {
 	}
 	if envConfigFile := os.Getenv("CONFIG"); envConfigFile != "" {
 		f.FlagConfigFile = envConfigFile
+	}
+	if envGRPCAddress := os.Getenv("G_ADDRESS"); envGRPCAddress != "" {
+		f.FlagGRPCAddress = envGRPCAddress
+	}
+	if envCACertFile := os.Getenv("CA_CERT"); envCACertFile != "" {
+		f.FlagCACertFile = envCACertFile
 	}
 }

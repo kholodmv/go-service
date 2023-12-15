@@ -5,8 +5,14 @@ import (
 	"context"
 	"crypto/rsa"
 	"database/sql"
+	"github.com/kholodmv/go-service/internal/core"
+	"github.com/kholodmv/go-service/internal/interceptors"
 	"github.com/kholodmv/go-service/internal/middleware/logger"
+	"github.com/kholodmv/go-service/proto"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -84,6 +90,7 @@ func main() {
 			db.WriteAndSaveMetricsToFile(cfg.FileName)
 		}
 	}()
+	grpc := startGRPC(cfg, log, db)
 
 	connectionsClosed := make(chan struct{})
 	go func() {
@@ -109,6 +116,7 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalw(err.Error(), "event", "start server")
 	}
+	grpc.GracefulStop()
 }
 
 // connectToDB is function which connected to postgres db.
@@ -118,4 +126,33 @@ func connectToDB(path string) *sql.DB {
 		log.Fatal("Failed to connect to the database: ", err)
 	}
 	return con
+}
+
+func startGRPC(cfg configs.ServerConfig, log *zap.SugaredLogger, repo store.Storage) *grpc.Server {
+	listen, err := net.Listen("tcp", cfg.GAddress)
+	if err != nil {
+		log.Fatal("unable to listen tcp", zap.Error(err))
+	}
+
+	opts := make([]grpc.ServerOption, 0)
+	if cfg.GRPCConfig.TLSCertFile != "" && cfg.GRPCConfig.TLSKeyFile != "" {
+		creds, err := credentials.NewServerTLSFromFile(cfg.TLSCertFile, cfg.GRPCConfig.TLSKeyFile)
+		if err != nil {
+			log.Fatal("failed to create credentials: %v", zap.Error(err))
+		}
+		opts = append(opts, grpc.Creds(creds))
+	}
+
+	opts = append(opts, interceptors.RegisterUnaryInterceptorChain(cfg))
+
+	s := grpc.NewServer(opts...)
+	proto.RegisterMetricsServer(s, core.NewMetricsServer(repo, log.Desugar()))
+
+	go func() {
+		if err := s.Serve(listen); err != nil {
+			log.Fatal("unable to start grpc server", zap.Error(err))
+		}
+	}()
+
+	return s
 }

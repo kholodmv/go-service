@@ -9,9 +9,10 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/kholodmv/go-service/internal/middleware/logger"
+	"github.com/kholodmv/go-service/proto"
+	"google.golang.org/grpc/metadata"
 	"math/rand"
 	"net"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/pkg/errors"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 
@@ -55,14 +57,35 @@ func Compress(data []byte) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+func (m *Metrics) ToProto() ([]*proto.Metric, error) {
+	metrics, err := models.ReadStruct(m)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]*proto.Metric, 0, len(metrics))
+	for i := range metrics {
+		res = append(res, &proto.Metric{
+			Id:    metrics[i].ID,
+			Type:  metrics[i].MType,
+			Delta: *metrics[i].Delta,
+			Value: *metrics[i].Value,
+		})
+	}
+
+	return res, nil
+
+}
+
 // ReportAgent function that triggers the collection and sending of metrics.
-func (m *Metrics) ReportAgent(ctx context.Context, connectionsClosed chan struct{}, c configs.ConfigAgent, pk *rsa.PublicKey) {
+func (m *Metrics) ReportAgent(ctx context.Context, connectionsClosed chan struct{}, c configs.ConfigAgent, pk *rsa.PublicKey, metricClient proto.MetricsClient) {
 	metricCh := make(chan models.Metrics)
 	timeR := 0
 	for {
 		if timeR >= c.ReportInterval {
 			timeR = 0
 			go m.SendMetrics(c.Client, c.AgentURL, c.Key, metricCh, c.RateLimit, pk)
+			go m.sendGRPC(metricCh, metricClient)
 		}
 		go m.CollectMetrics(metricCh)
 
@@ -224,6 +247,28 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 		ticker.Stop()
 	}
 
+	return nil
+}
+
+func (m *Metrics) sendGRPC(metricCh <-chan models.Metrics, metricClient proto.MetricsClient) error {
+	for metric := range metricCh {
+		pb, err := metric.ToProto()
+		if err != nil {
+			return err
+		}
+		ctx, _ := context.WithTimeout(context.Background(), time.Second)
+
+		ip, err := GetLocalIP()
+		if err != nil {
+			return err
+		}
+		metadata.AppendToOutgoingContext(ctx, "X-Real-IP", ip)
+
+		_, err = metricClient.UpdateList(ctx, &proto.UpdateListRequest{Metric: pb})
+		if err != nil {
+			return errors.Wrap(err, "unable to make grpc call")
+		}
+	}
 	return nil
 }
 
