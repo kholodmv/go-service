@@ -236,19 +236,17 @@ func (m *Metrics) sendGRPC(metricCh <-chan models.Metrics, metricClient proto.Me
 		if err != nil {
 			return err
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 		ip, err := GetLocalIP()
 		if err != nil {
 			return err
 		}
-		metadata.AppendToOutgoingContext(ctx, "X-Real-IP", ip)
+		metadata.AppendToOutgoingContext(context.Background(), "X-Real-IP", ip)
 
-		_, err = metricClient.UpdateList(ctx, &proto.UpdateListRequest{Metric: pb})
+		_, err = metricClient.UpdateList(context.Background(), &proto.UpdateListRequest{Metric: pb})
 		if err != nil {
 			return errors.Wrap(err, "unable to make grpc call")
 		}
-		cancel()
 	}
 	return nil
 }
