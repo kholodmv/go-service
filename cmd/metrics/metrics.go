@@ -236,7 +236,7 @@ func (m *Metrics) sendGRPC(metricCh <-chan models.Metrics, metricClient proto.Me
 		if err != nil {
 			return err
 		}
-		ctx, _ := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 		ip, err := GetLocalIP()
 		if err != nil {
@@ -248,6 +248,7 @@ func (m *Metrics) sendGRPC(metricCh <-chan models.Metrics, metricClient proto.Me
 		if err != nil {
 			return errors.Wrap(err, "unable to make grpc call")
 		}
+		cancel()
 	}
 	return nil
 }
