@@ -3,7 +3,6 @@ package models
 
 import (
 	"fmt"
-	"github.com/kholodmv/go-service/cmd/metrics"
 	"github.com/kholodmv/go-service/proto"
 	"reflect"
 )
@@ -15,6 +14,11 @@ type Metrics struct {
 	Delta *int64   `json:"delta,omitempty"` // metric value in case of transfer counter
 	Value *float64 `json:"value,omitempty"` // metric value in case of transmitting gauge
 }
+
+const (
+	typeCounter = "counter"
+	typeGauge   = "gauge"
+)
 
 func ReadStruct(st interface{}) ([]Metrics, error) {
 	val := reflect.ValueOf(st)
@@ -45,7 +49,7 @@ func ReadStruct(st interface{}) ([]Metrics, error) {
 				v := f.Index(j).Float()
 				result = append(result, Metrics{
 					ID:    fmt.Sprintf("%v%v", val.Type().Field(i).Name, j+1),
-					MType: metrics.Gauge,
+					MType: typeGauge,
 					Value: &v,
 				})
 			}
@@ -53,21 +57,21 @@ func ReadStruct(st interface{}) ([]Metrics, error) {
 			v := int64(f.Uint())
 			result = append(result, Metrics{
 				ID:    val.Type().Field(i).Name,
-				MType: metrics.Counter,
+				MType: typeCounter,
 				Delta: &v,
 			})
 		case reflect.Int64:
 			v := f.Int()
 			result = append(result, Metrics{
 				ID:    val.Type().Field(i).Name,
-				MType: metrics.Counter,
+				MType: typeCounter,
 				Delta: &v,
 			})
 		case reflect.Float64:
 			v := f.Float()
 			result = append(result, Metrics{
 				ID:    val.Type().Field(i).Name,
-				MType: metrics.Gauge,
+				MType: typeGauge,
 				Value: &v,
 			})
 		case reflect.Chan:

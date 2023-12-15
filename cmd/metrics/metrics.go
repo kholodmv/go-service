@@ -57,26 +57,6 @@ func Compress(data []byte) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func (m *Metrics) ToProto() ([]*proto.Metric, error) {
-	metrics, err := models.ReadStruct(m)
-	if err != nil {
-		return nil, err
-	}
-
-	res := make([]*proto.Metric, 0, len(metrics))
-	for i := range metrics {
-		res = append(res, &proto.Metric{
-			Id:    metrics[i].ID,
-			Type:  metrics[i].MType,
-			Delta: *metrics[i].Delta,
-			Value: *metrics[i].Value,
-		})
-	}
-
-	return res, nil
-
-}
-
 // ReportAgent function that triggers the collection and sending of metrics.
 func (m *Metrics) ReportAgent(ctx context.Context, connectionsClosed chan struct{}, c configs.ConfigAgent, pk *rsa.PublicKey, metricClient proto.MetricsClient) {
 	metricCh := make(chan models.Metrics)
