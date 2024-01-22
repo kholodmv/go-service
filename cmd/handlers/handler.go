@@ -9,7 +9,9 @@ import (
 	"github.com/kholodmv/go-service/internal/middleware/gzip"
 	"github.com/kholodmv/go-service/internal/middleware/hash"
 	"github.com/kholodmv/go-service/internal/middleware/logger"
+	"github.com/kholodmv/go-service/internal/middleware/subnet"
 	"go.uber.org/zap"
+	"net"
 
 	"github.com/kholodmv/go-service/internal/store"
 )
@@ -20,16 +22,18 @@ type Handler struct {
 	db               store.Storage
 	log              zap.SugaredLogger
 	key              string
+	trustedSubnet    string
 	cryptoPrivateKey *rsa.PrivateKey
 }
 
 // NewHandler creates a new instance of the handler structure.
-func NewHandler(router chi.Router, db store.Storage, log zap.SugaredLogger, key string, cryptoPrivateKey *rsa.PrivateKey) *Handler {
+func NewHandler(router chi.Router, db store.Storage, log zap.SugaredLogger, key string, trustedSubnet string, cryptoPrivateKey *rsa.PrivateKey) *Handler {
 	h := &Handler{
 		router:           router,
 		db:               db,
 		log:              log,
 		key:              key,
+		trustedSubnet:    trustedSubnet,
 		cryptoPrivateKey: cryptoPrivateKey,
 	}
 
@@ -46,6 +50,13 @@ func (mh *Handler) RegisterRoutes(router *chi.Mux) {
 
 	if mh.cryptoPrivateKey != nil {
 		mh.router.Use(decrypt.WithRsaDecrypt(mh.cryptoPrivateKey))
+	}
+	if mh.trustedSubnet != "" {
+		_, trustedNet, err := net.ParseCIDR(mh.trustedSubnet)
+		if err != nil {
+			mh.log.Error("failed parse CIDR", zap.Error(err))
+		}
+		mh.router.Use(subnet.WithCheckSubnet(trustedNet))
 	}
 
 	router.Post("/update/{type}/{name}/{value}", mh.UpdateMetric)

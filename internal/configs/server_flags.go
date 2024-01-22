@@ -9,6 +9,7 @@ import (
 
 // ServerConfig structure that contains variables for initial.
 type ServerConfig struct {
+	GRPCConfig
 	DB               string
 	RunAddress       string
 	LogLevel         string
@@ -18,6 +19,16 @@ type ServerConfig struct {
 	Key              string
 	CryptoPrivateKey string
 	ConfigFile       string
+	TrustedSubnet    string
+	GAddress         string
+	TLSCertFile      string
+	TLSKeyFile       string
+}
+
+type GRPCConfig struct {
+	GAddress    string `env:"G_ADDRESS" json:"g_address"`
+	TLSCertFile string `env:"CERT_FILE" json:"cert_file"`
+	TLSKeyFile  string `env:"KEY_FILE" json:"key_file"`
 }
 
 // UseServerStartParams - assigning configuration environment variables.
@@ -33,6 +44,11 @@ func UseServerStartParams() ServerConfig {
 	flag.StringVar(&c.Key, "k", "", "key")
 	flag.StringVar(&c.CryptoPrivateKey, "crypto-key", "", "path to RSA private key file in PEM format")
 	flag.StringVar(&c.ConfigFile, "c", "", "path to configuration file")
+	flag.StringVar(&c.TrustedSubnet, "t", "", "trusted subnet")
+	flag.StringVar(&c.GAddress, "g", "localhost:8081", "grpc server address")
+	flag.StringVar(&c.TLSCertFile, "tls-cert", "", "tls cert file")
+	flag.StringVar(&c.TLSKeyFile, "tls-key", "", "tls key file")
+
 	flag.Parse()
 
 	if envRunDB := os.Getenv("DATABASE_DSN"); envRunDB != "" {
@@ -61,6 +77,19 @@ func UseServerStartParams() ServerConfig {
 	}
 	if envConfigFile := os.Getenv("CONFIG"); envConfigFile != "" {
 		c.ConfigFile = envConfigFile
+	}
+	if envTrustedSubnet := os.Getenv("TRUSTED_SUBNET"); envTrustedSubnet != "" {
+		c.TrustedSubnet = envTrustedSubnet
+	}
+
+	if envGAddress := os.Getenv("G_ADDRESS"); envGAddress != "" {
+		c.GAddress = envGAddress
+	}
+	if envTLSCertFile := os.Getenv("CERT_FILE"); envTLSCertFile != "" {
+		c.TLSCertFile = envTLSCertFile
+	}
+	if envTLSKeyFile := os.Getenv("KEY_FILE"); envTLSKeyFile != "" {
+		c.TLSKeyFile = envTLSKeyFile
 	}
 
 	return c

@@ -11,12 +11,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kholodmv/go-service/internal/middleware/logger"
+	"github.com/kholodmv/go-service/proto"
+	"google.golang.org/grpc/metadata"
 	"math/rand"
+	"net"
 	"net/http"
 	"runtime"
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/pkg/errors"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 
@@ -54,13 +58,14 @@ func Compress(data []byte) ([]byte, error) {
 }
 
 // ReportAgent function that triggers the collection and sending of metrics.
-func (m *Metrics) ReportAgent(ctx context.Context, connectionsClosed chan struct{}, c configs.ConfigAgent, pk *rsa.PublicKey) {
+func (m *Metrics) ReportAgent(ctx context.Context, connectionsClosed chan struct{}, c configs.ConfigAgent, pk *rsa.PublicKey, metricClient proto.MetricsClient) {
 	metricCh := make(chan models.Metrics)
 	timeR := 0
 	for {
 		if timeR >= c.ReportInterval {
 			timeR = 0
 			go m.SendMetrics(c.Client, c.AgentURL, c.Key, metricCh, c.RateLimit, pk)
+			go m.sendGRPC(metricCh, metricClient)
 		}
 		go m.CollectMetrics(metricCh)
 
@@ -179,6 +184,11 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 		}
 		reader := bytes.NewReader(encryptedBytes)
 
+		ip, err := GetLocalIP()
+		if err != nil {
+			return err
+		}
+
 		var resp *resty.Response
 		if key != "" {
 			resp, err = client.R().
@@ -187,6 +197,7 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").
 				SetHeader("HashSHA256", hashSHA256).
+				SetHeader("X-Real-IP", ip).
 				Post(url)
 		} else {
 			resp, err = client.R().
@@ -194,6 +205,7 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 				SetHeader("Content-Type", "application/json").
 				SetHeader("Accept", "application/json").
 				SetHeader("Content-Encoding", "gzip").
+				SetHeader("X-Real-IP", ip).
 				Post(url)
 		}
 
@@ -216,4 +228,45 @@ func (m *Metrics) SendMetrics(client *resty.Client, agentURL string, key string,
 	}
 
 	return nil
+}
+
+func (m *Metrics) sendGRPC(metricCh <-chan models.Metrics, metricClient proto.MetricsClient) error {
+	for metric := range metricCh {
+		pb, err := metric.ToProto()
+		if err != nil {
+			return err
+		}
+
+		ip, err := GetLocalIP()
+		if err != nil {
+			return err
+		}
+		metadata.AppendToOutgoingContext(context.Background(), "X-Real-IP", ip)
+
+		_, err = metricClient.UpdateList(context.Background(), &proto.UpdateListRequest{Metric: pb})
+		if err != nil {
+			return errors.Wrap(err, "unable to make grpc call")
+		}
+	}
+	return nil
+}
+
+func GetLocalIP() (string, error) {
+	ips, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+
+	for i := range ips {
+		if ips[i].String() != "127.0.0.1/8" {
+			ip, _, err := net.ParseCIDR(ips[i].String())
+			if err != nil {
+				return "", err
+			}
+
+			return ip.String(), nil
+		}
+	}
+
+	return "", errors.New("no IP available")
 }
